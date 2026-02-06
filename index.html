@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopify Customer Support</title>
+    <style>
+        /* UPDATED LAYOUT - SIMILAR TO ADMIN */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            overflow: hidden; /* Changed from display: flex */
+        }
+
+        /* REMOVED: Welcome screen styling - keep it as is */
+        .welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 40px 30px;
+        }
+
+        .welcome-screen h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .welcome-screen p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 15px;
+            text-align: center;
+        }
+
+        .welcome-form {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .welcome-form input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        .welcome-form input:focus {
+            outline: none;
+            border-color: #999;
+        }
+
+        .welcome-form button {
+            width: 100%;
+            padding: 14px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* CHAT CONTAINER - UPDATED LAYOUT */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: white;
+            position: relative;
+        }
+
+        .chat-header {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e5e5e5;
+            flex-shrink: 0; /* Don't shrink */
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .support-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .header-text h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+            background: #ccc;
+        }
+
+        .status-dot.online {
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .logout-btn {
+            padding: 6px 12px;
+            background: #f5f5f5;
+            color: #666;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .connecting-banner {
+            background: #f0f9ff;
+            color: #0369a1;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 13px;
+            border-bottom: 1px solid #e0f2fe;
+            flex-shrink: 0; /* Don't shrink */
+        }
+
+        .connecting-banner.show {
+            display: block;
+        }
+
+        /* MESSAGES AREA - CRITICAL FIX */
+        .messages-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fafafa;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .messages-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .messages-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 120px; /* Enough space for input */
+            scroll-behavior: smooth;
+        }
+
+        .date-divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .join-notification {
+            text-align: center;
+            margin: 15px 0;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .message.customer {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            max-width: 70%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message.customer .message-content {
+            align-items: flex-end;
+        }
+
+        .message-bubble {
+            padding: 10px 14px;
+            border-radius: 16px;
+            word-wrap: break-word;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .message.customer .message-bubble {
+            background: #d1d5db;
+            color: #333;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.admin .message-bubble {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            border: 1px solid #e5e5e5;
+        }
+
+        .message.system .message-bubble {
+            background: #f0f9ff;
+            color: #0369a1;
+            border: 1px solid #e0f2fe;
+            border-radius: 12px;
+        }
+
+        .message-info {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 4px;
+        }
+
+        /* INPUT CONTAINER - FIXED POSITION */
+        .input-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 20px;
+            background: white;
+            border-top: 1px solid #e5e5e5;
+            z-index: 100;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e5e5e5;
+            border-radius: 24px;
+            font-size: 15px;
+            background: #fafafa;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: #999;
+            background: white;
+        }
+
+        .input-wrapper button {
+            padding: 12px 24px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* TYPING INDICATOR */
+        .typing-indicator {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 760px;
+            padding: 8px 16px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 13px;
+            color: #666;
+            display: none;
+            z-index: 90;
+        }
+
+        .typing-indicator.show {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .typing-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #999;
+            margin: 0 1px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        /* UTILITY CLASSES */
+        .hidden {
+            display: none !important;
+        }
+
+        .connection-error {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            text-align: center;
+            font-size: 13px;
+            display: none;
+        }
+
+        .connection-error.show {
+            display: block;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .input-container {
+                padding: 15px;
+            }
+            
+            .typing-indicator {
+                bottom: 60px;
+                width: calc(100% - 30px);
+            }
+            
+            .messages-container {
+                padding: 15px;
+                padding-bottom: 110px;
+            }
+            
+            .welcome-screen {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .messages-container {
+                padding: 10px;
+                padding-bottom: 100px;
+            }
+            
+            .message-content {
+                max-width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen" class="welcome-screen">
+        <h1>Welcome to Shopify Support</h1>
+        <p>Enter your details to connect with our support team</p>
+        <form class="welcome-form" id="welcomeForm">
+            <input type="text" id="customerName" placeholder="Your Name" required>
+            <input type="email" id="customerEmail" placeholder="Your Email" required>
+            <button type="submit">Start Chat</button>
+        </form>
+    </div>
+
+    <!-- Chat Container -->
+    <div id="chatContainer" class="chat-container hidden">
+        <div class="connection-error" id="connectionError">
+            Connection lost. Trying to reconnect...
+        </div>
+
+        <div class="chat-header">
+            <div class="header-info">
+                <div class="support-avatar">SS</div>
+                <div class="header-text">
+                    <h2>Shopify Support</h2>
+                    <div class="status">
+                        <span class="status-dot" id="adminStatus"></span>
+                        <span id="statusText">Connecting...</span>
+                    </div>
+                </div>
+            </div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+
+        <div class="connecting-banner" id="connectingBanner">
+            Connecting you with a live agent...
+        </div>
+
+        <!-- Messages Area (Similar to admin's .chat-area) -->
+        <div class="messages-area">
+            <div class="messages-wrapper">
+                <div class="messages-container" id="messagesContainer">
+                    <div class="date-divider">Today</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Typing Indicator -->
+    <div class="typing-indicator" id="typingIndicator">
+        <span>Support is typing</span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+    </div>
+
+    <!-- Input Container -->
+    <div class="input-container hidden" id="inputContainer">
+        <div class="input-wrapper">
+            <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
+            <button id="sendButton">Send</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, push, onValue, set, update, serverTimestamp, onDisconnect, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA2E8L9VDUWXyJ1UgqlvTFpqYvRVNDUfho",
+            authDomain: "support-chat-6391e.firebaseapp.com",
+            databaseURL: "https://support-chat-6391e-default-rtdb.firebaseio.com",
+            projectId: "support-chat-6391e",
+            storageBucket: "support-chat-6391e.firebasestorage.app",
+            messagingSenderId: "817965074720",
+            appId: "1:817965074720:web:365b7c175189150b11af45",
+            measurementId: "G-BBQ6TPTJW5"
+        };
+
+        let app, database;
+        
+        try {
+            app = initializeApp(firebaseConfig);
+            database = getDatabase(app);
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            showConnectionError();
+        }
+
+        let sessionId = null;
+        let customerName = '';
+        let customerEmail = '';
+        let isTyping = false;
+        let typingTimeout = null;
+        let customerInitials = '';
+
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const chatContainer = document.getElementById('chatContainer');
+        const welcomeForm = document.getElementById('welcomeForm');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const adminStatus = document.getElementById('adminStatus');
+        const statusText = document.getElementById('statusText');
+        const connectionError = document.getElementById('connectionError');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const inputContainer = document.getElementById('inputContainer');
+        const connectingBanner = document.getElementById('connectingBanner');
+
+        // Check for saved customer data
+        window.addEventListener('load', () => {
+            const savedSession = localStorage.getItem('customerSession');
+            if (savedSession) {
+                try {
+                    const sessionData = JSON.parse(savedSession);
+                    customerName = sessionData.name;
+                    customerEmail = sessionData.email;
+                    sessionId = sessionData.sessionId;
+                    customerInitials = getInitials(customerName);
+                    
+                    welcomeScreen.classList.add('hidden');
+                    chatContainer.classList.remove('hidden');
+                    inputContainer.classList.remove('hidden');
+                    
+                    resumeSession();
+                } catch (error) {
+                    console.error('Error loading saved session:', error);
+                    localStorage.removeItem('customerSession');
+                }
+            }
+        });
+
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+
+        function showConnectionError() {
+            connectionError.classList.add('show');
+            setTimeout(() => {
+                connectionError.classList.remove('show');
+            }, 5000);
+        }
+
+        function playNotificationSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (error) {
+                console.log('Audio playback error:', error);
+            }
+        }
+
+        function scrollToBottom() {
+            // Use requestAnimationFrame for smooth scrolling
+            requestAnimationFrame(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            });
+        }
+
+        function resumeSession() {
+            set(ref(database, `sessions/${sessionId}/customerOnline`), true);
+            onDisconnect(ref(database, `sessions/${sessionId}/customerOnline`)).set(false);
+            
+            listenForMessages();
+            listenForAdminStatus();
+            listenForAdminTyping();
+            messageInput.focus();
+        }
+
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout? Your chat history will be saved and you can return anytime.')) {
+                if (sessionId) {
+                    set(ref(database, `sessions/${sessionId}/customerOnline`), false);
+                }
+                welcomeScreen.classList.remove('hidden');
+                chatContainer.classList.add('hidden');
+                inputContainer.classList.add('hidden');
+            }
+        });
+
+        welcomeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const inputName = document.getElementById('customerName').value;
+            const inputEmail = document.getElementById('customerEmail').value;
+
+            const savedSession = localStorage.getItem('customerSession');
+            
+            if (savedSession) {
+                try {
+                    const sessionData = JSON.parse(savedSession);
+                    
+                    if (sessionData.name === inputName && sessionData.email === inputEmail) {
+                        customerName = sessionData.name;
+                        customerEmail = sessionData.email;
+                        sessionId = sessionData.sessionId;
+                        customerInitials = getInitials(customerName);
+                        
+                        set(ref(database, `sessions/${sessionId}/customerOnline`), true);
+                        onDisconnect(ref(database, `sessions/${sessionId}/customerOnline`)).set(false);
+                    } else {
+                        localStorage.removeItem('customerSession');
+                        sessionId = null;
+                    }
+                } catch (error) {
+                    console.error('Error resuming session:', error);
+                    localStorage.removeItem('customerSession');
+                    sessionId = null;
+                }
+            }
+
+            if (!sessionId) {
+                try {
+                    customerName = inputName;
+                    customerEmail = inputEmail;
+                    customerInitials = getInitials(customerName);
+                    sessionId = push(ref(database, 'sessions')).key;
+                    
+                    await set(ref(database, `sessions/${sessionId}`), {
+                        customerName,
+                        customerEmail,
+                        startedAt: serverTimestamp(),
+                        customerOnline: true,
+                        adminOnline: false,
+                        unreadByAdmin: 1,
+                        archived: false,
+                        newCustomer: true
+                    });
+
+                    localStorage.setItem('customerSession', JSON.stringify({
+                        name: customerName,
+                        email: customerEmail,
+                        sessionId: sessionId
+                    }));
+
+                    const customerPresenceRef = ref(database, `sessions/${sessionId}/customerOnline`);
+                    set(customerPresenceRef, true);
+                    onDisconnect(customerPresenceRef).set(false);
+
+                    const joinRef = push(ref(database, `sessions/${sessionId}/messages`));
+                    await set(joinRef, {
+                        type: 'notification',
+                        text: `${customerName} joined the chat`,
+                        timestamp: serverTimestamp()
+                    });
+
+                    connectingBanner.classList.add('show');
+                    
+                    setTimeout(async () => {
+                        const welcomeRef = push(ref(database, `sessions/${sessionId}/messages`));
+                        await set(welcomeRef, {
+                            text: "Hello! Welcome to our support team. How can we assist you today?",
+                            sender: 'system',
+                            timestamp: serverTimestamp(),
+                            read: true
+                        });
+                        
+                        connectingBanner.classList.remove('show');
+                        scrollToBottom();
+                    }, 2000);
+
+                } catch (error) {
+                    console.error('Error starting session:', error);
+                    showConnectionError();
+                    return;
+                }
+            }
+
+            welcomeScreen.classList.add('hidden');
+            chatContainer.classList.remove('hidden');
+            inputContainer.classList.remove('hidden');
+            
+            listenForMessages();
+            listenForAdminStatus();
+            listenForAdminTyping();
+            messageInput.focus();
+        });
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            try {
+                const messageRef = push(ref(database, `sessions/${sessionId}/messages`));
+                set(messageRef, {
+                    text: message,
+                    sender: 'customer',
+                    timestamp: serverTimestamp(),
+                    read: false
+                });
+
+                get(ref(database, `sessions/${sessionId}`)).then((snapshot) => {
+                    const data = snapshot.val();
+                    update(ref(database, `sessions/${sessionId}`), {
+                        unreadByAdmin: (data.unreadByAdmin || 0) + 1
+                    });
+                });
+
+                messageInput.value = '';
+                stopTyping();
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showConnectionError();
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        messageInput.addEventListener('input', () => {
+            if (!isTyping) {
+                isTyping = true;
+                set(ref(database, `sessions/${sessionId}/customerTyping`), true);
+            }
+
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(stopTyping, 1000);
+        });
+
+        function stopTyping() {
+            isTyping = false;
+            set(ref(database, `sessions/${sessionId}/customerTyping`), false);
+        }
+
+        function listenForMessages() {
+            const messagesRef = ref(database, `sessions/${sessionId}/messages`);
+            
+            onValue(messagesRef, (snapshot) => {
+                const messages = snapshot.val();
+                
+                // Clear and re-render all messages
+                messagesContainer.innerHTML = '<div class="date-divider">Today</div>';
+                
+                if (messages) {
+                    Object.entries(messages).forEach(([id, msg]) => {
+                        if (msg.type === 'notification') {
+                            displayNotification(msg);
+                        } else {
+                            displayMessage(msg, id);
+                        }
+                        
+                        // Mark admin messages as read
+                        if (msg.sender === 'admin' && !msg.read) {
+                            update(ref(database, `sessions/${sessionId}/messages/${id}`), {
+                                read: true
+                            });
+                        }
+                    });
+                    
+                    // Play sound for the most recent message if it's from admin
+                    const lastMsg = Object.values(messages).pop();
+                    if (lastMsg && lastMsg.sender !== 'customer') {
+                        playNotificationSound();
+                    }
+                }
+                
+                // Scroll to bottom
+                scrollToBottom();
+                
+            }, (error) => {
+                console.error('Error listening for messages:', error);
+                showConnectionError();
+            });
+        }
+
+        function displayNotification(msg) {
+            const notifDiv = document.createElement('div');
+            notifDiv.className = 'join-notification';
+            notifDiv.textContent = msg.text;
+            messagesContainer.appendChild(notifDiv);
+        }
+
+        function displayMessage(msg, id) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${msg.sender}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = msg.sender === 'customer' ? customerInitials : 'SS';
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = msg.text;
+            
+            const info = document.createElement('div');
+            info.className = 'message-info';
+            
+            const time = msg.timestamp ? formatTime(msg.timestamp) : 'now';
+            const receipt = msg.read ? 'seen' : 'delivered';
+            
+            if (msg.sender === 'customer') {
+                info.innerHTML = `<span>${time}, ${receipt}</span>`;
+            } else {
+                info.innerHTML = `<span>${time}</span>`;
+            }
+            
+            content.appendChild(bubble);
+            content.appendChild(info);
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            messagesContainer.appendChild(messageDiv);
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = (now - date) / 1000;
+            
+            if (diff < 60) return 'a moment ago';
+            if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function listenForAdminStatus() {
+            const statusRef = ref(database, `sessions/${sessionId}/adminOnline`);
+            onValue(statusRef, (snapshot) => {
+                const online = snapshot.val();
+                if (online) {
+                    adminStatus.classList.add('online');
+                    statusText.textContent = 'online';
+                } else {
+                    adminStatus.classList.remove('online');
+                    statusText.textContent = 'offline';
+                }
+            });
+        }
+
+        function listenForAdminTyping() {
+            const typingRef = ref(database, `sessions/${sessionId}/adminTyping`);
+            onValue(typingRef, (snapshot) => {
+                const typing = snapshot.val();
+                if (typing) {
+                    typingIndicator.classList.add('show');
+                } else {
+                    typingIndicator.classList.remove('show');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
