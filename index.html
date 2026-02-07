@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopify Customer Support</title>
+    <title>Merchant Customer Support</title>
     <style>
         * {
             margin: 0;
@@ -443,38 +443,6 @@
         .connection-error.show {
             display: block;
         }
-
-        .notification-permission-banner {
-            background: #fef3c7;
-            color: #92400e;
-            padding: 12px 20px;
-            text-align: center;
-            font-size: 13px;
-            border-bottom: 1px solid #fde68a;
-            display: none;
-            flex-shrink: 0;
-        }
-
-        .notification-permission-banner.show {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .notification-permission-banner button {
-            padding: 6px 12px;
-            background: #92400e;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-
-        .notification-permission-banner button:hover {
-            background: #78350f;
-        }
     </style>
 </head>
 <body>
@@ -483,16 +451,11 @@
             Connection lost. Trying to reconnect...
         </div>
 
-        <div class="notification-permission-banner" id="notificationBanner">
-            <span>🔔 Enable notifications to get alerts even when browser is closed</span>
-            <button id="enableNotificationsBtn">Enable</button>
-        </div>
-
         <div class="chat-header">
             <div class="header-info">
                 <div class="support-avatar">SS</div>
                 <div class="header-text">
-                    <h2>Shopify Support</h2>
+                    <h2>Support</h2>
                     <div class="status">
                         <span class="status-dot" id="adminStatus"></span>
                         <span id="statusText">Connecting...</span>
@@ -503,7 +466,7 @@
         </div>
 
         <div id="welcomeScreen" class="welcome-screen">
-            <h1>Welcome to Shopify Support</h1>
+            <h1>Welcome to Support</h1>
             <p>Enter your details to connect with our support team</p>
             <form class="welcome-form" id="welcomeForm">
                 <input type="text" id="customerName" placeholder="Your Name" required>
@@ -573,6 +536,7 @@
         let lastMessageCount = 0;
         let userScrolledUp = false;
         let isNewSession = false;
+        let notificationPermissionGranted = false;
 
         const welcomeScreen = document.getElementById('welcomeScreen');
         const chatScreen = document.getElementById('chatScreen');
@@ -587,28 +551,27 @@
         const logoutBtn = document.getElementById('logoutBtn');
         const inputContainer = document.getElementById('inputContainer');
         const connectingBanner = document.getElementById('connectingBanner');
-        const notificationBanner = document.getElementById('notificationBanner');
-        const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
 
-        // Request notification permission
+        // Request notification permission immediately
         async function requestNotificationPermission() {
-            if ('Notification' in window) {
+            if ('Notification' in window && Notification.permission === 'default') {
                 const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    notificationBanner.classList.remove('show');
-                }
+                notificationPermissionGranted = permission === 'granted';
                 return permission;
+            } else if (Notification.permission === 'granted') {
+                notificationPermissionGranted = true;
             }
-            return 'denied';
+            return Notification.permission;
         }
 
-        // Check notification permission on load
+        messagesContainer.addEventListener('scroll', () => {
+            const isAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 100;
+            userScrolledUp = !isAtBottom;
+        });
+
         window.addEventListener('load', () => {
-            if ('Notification' in window && Notification.permission === 'default') {
-                setTimeout(() => {
-                    notificationBanner.classList.add('show');
-                }, 2000);
-            }
+            // Request notification permission on load
+            requestNotificationPermission();
 
             const savedSession = localStorage.getItem('customerSession');
             if (savedSession) {
@@ -633,15 +596,6 @@
             }
         });
 
-        enableNotificationsBtn.addEventListener('click', async () => {
-            await requestNotificationPermission();
-        });
-
-        messagesContainer.addEventListener('scroll', () => {
-            const isAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 100;
-            userScrolledUp = !isAtBottom;
-        });
-
         function getInitials(name) {
             return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         }
@@ -653,24 +607,34 @@
             }, 5000);
         }
 
-        function playPopSound() {
+        // WhatsApp notification sound - Two-tone "ding-dong"
+        function playWhatsAppSound() {
             try {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
                 
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
+                // First tone (higher pitch)
+                const oscillator1 = audioContext.createOscillator();
+                const gainNode1 = audioContext.createGain();
+                oscillator1.connect(gainNode1);
+                gainNode1.connect(audioContext.destination);
+                oscillator1.frequency.value = 900; // E note
+                oscillator1.type = 'sine';
+                gainNode1.gain.setValueAtTime(0.5, audioContext.currentTime);
+                gainNode1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                oscillator1.start(audioContext.currentTime);
+                oscillator1.stop(audioContext.currentTime + 0.2);
                 
-                // Pop sound: Quick burst at 1000Hz
-                oscillator.frequency.value = 1000;
-                oscillator.type = 'sine';
-                
-                gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.15);
+                // Second tone (lower pitch) - starts after first
+                const oscillator2 = audioContext.createOscillator();
+                const gainNode2 = audioContext.createGain();
+                oscillator2.connect(gainNode2);
+                gainNode2.connect(audioContext.destination);
+                oscillator2.frequency.value = 600; // D note
+                oscillator2.type = 'sine';
+                gainNode2.gain.setValueAtTime(0.5, audioContext.currentTime + 0.15);
+                gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                oscillator2.start(audioContext.currentTime + 0.15);
+                oscillator2.stop(audioContext.currentTime + 0.4);
             } catch (error) {
                 console.log('Audio playback error:', error);
             }
@@ -678,23 +642,51 @@
 
         function showBrowserNotification(title, body) {
             if ('Notification' in window && Notification.permission === 'granted') {
-                const notification = new Notification(title, {
-                    body: body,
-                    icon: '🔔',
-                    badge: '🔔',
-                    tag: 'support-message',
-                    requireInteraction: false,
-                    silent: false
-                });
-
-                notification.onclick = function() {
-                    window.focus();
-                    notification.close();
-                };
-
-                // Auto-close after 10 seconds
-                setTimeout(() => notification.close(), 10000);
+                // Use service worker if available for better background support
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.ready.then(registration => {
+                        registration.showNotification(title, {
+                            body: body,
+                            icon: '/favicon.ico',
+                            badge: '/favicon.ico',
+                            tag: 'support-message',
+                            requireInteraction: false,
+                            vibrate: [200, 100, 200],
+                            data: { url: window.location.href }
+                        });
+                    }).catch(() => {
+                        // Fallback to regular notification
+                        showRegularNotification(title, body);
+                    });
+                } else {
+                    showRegularNotification(title, body);
+                }
             }
+        }
+
+        function showRegularNotification(title, body) {
+            const notification = new Notification(title, {
+                body: body,
+                icon: '/favicon.ico',
+                badge: '/favicon.ico',
+                tag: 'support-message',
+                requireInteraction: false,
+                vibrate: [200, 100, 200]
+            });
+
+            notification.onclick = function() {
+                window.focus();
+                notification.close();
+            };
+
+            setTimeout(() => notification.close(), 10000);
+        }
+
+        // Register service worker for background notifications
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {
+                // Service worker not available, use regular notifications
+            });
         }
 
         function scrollToBottom() {
@@ -729,6 +721,12 @@
 
         welcomeForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // Request notification permission when starting chat
+            if (Notification.permission === 'default') {
+                await requestNotificationPermission();
+            }
+            
             const inputName = document.getElementById('customerName').value;
             const inputEmail = document.getElementById('customerEmail').value;
 
@@ -904,7 +902,7 @@
                 if (messageCount > lastMessageCount) {
                     const lastMsg = messages ? Object.values(messages).pop() : null;
                     if (lastMsg && lastMsg.sender !== 'customer' && lastMsg.type !== 'notification') {
-                        playPopSound();
+                        playWhatsAppSound();
                         showBrowserNotification(
                             '💬 New message from Support',
                             lastMsg.text.substring(0, 100)
