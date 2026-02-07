@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shopify Customer Support</title>
     <style>
-        /* UPDATED LAYOUT - SIMILAR TO ADMIN */
         * {
             margin: 0;
             padding: 0;
@@ -16,76 +15,23 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: #f5f5f5;
             height: 100vh;
-            overflow: hidden; /* Changed from display: flex */
-        }
-
-        /* REMOVED: Welcome screen styling - keep it as is */
-        .welcome-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: white;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
-            padding: 40px 30px;
+            padding: 10px;
         }
 
-        .welcome-screen h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 24px;
-            text-align: center;
-        }
-
-        .welcome-screen p {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 15px;
-            text-align: center;
-        }
-
-        .welcome-form {
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .welcome-form input {
-            width: 100%;
-            padding: 14px;
-            margin-bottom: 15px;
-            border: 1px solid #e5e5e5;
-            border-radius: 8px;
-            font-size: 15px;
-        }
-
-        .welcome-form input:focus {
-            outline: none;
-            border-color: #999;
-        }
-
-        .welcome-form button {
-            width: 100%;
-            padding: 14px;
-            background: #666;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* CHAT CONTAINER - UPDATED LAYOUT */
         .chat-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+            height: 90vh;
+            max-height: 700px;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            background: white;
+            overflow: hidden;
             position: relative;
         }
 
@@ -96,7 +42,9 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #e5e5e5;
-            flex-shrink: 0; /* Don't shrink */
+            position: relative;
+            z-index: 100;
+            flex-shrink: 0;
         }
 
         .header-info {
@@ -158,6 +106,64 @@
             border-radius: 6px;
             font-size: 12px;
             cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #e5e5e5;
+        }
+
+        .welcome-screen {
+            padding: 40px 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .welcome-screen h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .welcome-screen p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+
+        .welcome-form input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .welcome-form input:focus {
+            outline: none;
+            border-color: #999;
+        }
+
+        .welcome-form button {
+            width: 100%;
+            padding: 14px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .welcome-form button:hover {
+            background: #555;
         }
 
         .connecting-banner {
@@ -167,38 +173,28 @@
             text-align: center;
             font-size: 13px;
             border-bottom: 1px solid #e0f2fe;
-            flex-shrink: 0; /* Don't shrink */
+            display: none;
+            flex-shrink: 0;
         }
 
         .connecting-banner.show {
             display: block;
         }
 
-        /* MESSAGES AREA - CRITICAL FIX */
-        .messages-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #fafafa;
-            position: relative;
-            overflow: hidden;
-        }
-
         .messages-wrapper {
             flex: 1;
             position: relative;
             overflow: hidden;
+            background: #fafafa;
+            min-height: 0;
         }
 
         .messages-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            height: 100%;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 20px;
-            padding-bottom: 120px; /* Enough space for input */
+            padding-bottom: 80px;
             scroll-behavior: smooth;
         }
 
@@ -221,6 +217,7 @@
             display: flex;
             gap: 8px;
             align-items: flex-end;
+            clear: both;
         }
 
         .message.customer {
@@ -279,6 +276,14 @@
             border-radius: 12px;
         }
 
+        .message.ended .message-bubble {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            text-align: center;
+        }
+
         .message-info {
             font-size: 11px;
             color: #999;
@@ -289,60 +294,13 @@
             padding: 0 4px;
         }
 
-        /* INPUT CONTAINER - FIXED POSITION */
-        .input-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 15px 20px;
-            background: white;
-            border-top: 1px solid #e5e5e5;
-            z-index: 100;
-        }
-
-        .input-wrapper {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .input-wrapper input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 1px solid #e5e5e5;
-            border-radius: 24px;
-            font-size: 15px;
-            background: #fafafa;
-        }
-
-        .input-wrapper input:focus {
-            outline: none;
-            border-color: #999;
-            background: white;
-        }
-
-        .input-wrapper button {
-            padding: 12px 24px;
-            background: #666;
-            color: white;
-            border: none;
-            border-radius: 24px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        /* TYPING INDICATOR */
         .typing-indicator {
             position: fixed;
-            bottom: 70px;
+            bottom: 75px;
             left: 50%;
             transform: translateX(-50%);
-            width: calc(100% - 40px);
-            max-width: 760px;
+            width: calc(100% - 20px);
+            max-width: 480px;
             padding: 8px 16px;
             background: white;
             border-radius: 8px;
@@ -382,9 +340,94 @@
             30% { transform: translateY(-6px); }
         }
 
-        /* UTILITY CLASSES */
+        .input-container {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 20px);
+            max-width: 480px;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e5e5e5;
+            border-radius: 24px;
+            font-size: 15px;
+            background: #fafafa;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: #999;
+            background: white;
+        }
+
+        .input-wrapper button {
+            padding: 12px 24px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+            white-space: nowrap;
+        }
+
+        .input-wrapper button:hover {
+            background: #555;
+        }
+
+        .input-wrapper button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .hidden {
             display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 0;
+            }
+
+            .chat-container {
+                max-width: 100%;
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+
+            .message-content {
+                max-width: 75%;
+            }
+
+            .input-container {
+                bottom: 0;
+                border-radius: 0;
+                max-width: 100%;
+                width: 100%;
+            }
+
+            .typing-indicator {
+                bottom: 65px;
+                max-width: calc(100% - 20px);
+            }
         }
 
         .connection-error {
@@ -394,61 +437,55 @@
             text-align: center;
             font-size: 13px;
             display: none;
+            flex-shrink: 0;
         }
 
         .connection-error.show {
             display: block;
         }
 
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .input-container {
-                padding: 15px;
-            }
-            
-            .typing-indicator {
-                bottom: 60px;
-                width: calc(100% - 30px);
-            }
-            
-            .messages-container {
-                padding: 15px;
-                padding-bottom: 110px;
-            }
-            
-            .welcome-screen {
-                padding: 20px;
-            }
+        .notification-permission-banner {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 13px;
+            border-bottom: 1px solid #fde68a;
+            display: none;
+            flex-shrink: 0;
         }
 
-        @media (max-width: 480px) {
-            .messages-container {
-                padding: 10px;
-                padding-bottom: 100px;
-            }
-            
-            .message-content {
-                max-width: 80%;
-            }
+        .notification-permission-banner.show {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-permission-banner button {
+            padding: 6px 12px;
+            background: #92400e;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .notification-permission-banner button:hover {
+            background: #78350f;
         }
     </style>
 </head>
 <body>
-    <!-- Welcome Screen -->
-    <div id="welcomeScreen" class="welcome-screen">
-        <h1>Welcome to Shopify Support</h1>
-        <p>Enter your details to connect with our support team</p>
-        <form class="welcome-form" id="welcomeForm">
-            <input type="text" id="customerName" placeholder="Your Name" required>
-            <input type="email" id="customerEmail" placeholder="Your Email" required>
-            <button type="submit">Start Chat</button>
-        </form>
-    </div>
-
-    <!-- Chat Container -->
-    <div id="chatContainer" class="chat-container hidden">
+    <div class="chat-container">
         <div class="connection-error" id="connectionError">
             Connection lost. Trying to reconnect...
+        </div>
+
+        <div class="notification-permission-banner" id="notificationBanner">
+            <span>🔔 Enable notifications to get alerts even when browser is closed</span>
+            <button id="enableNotificationsBtn">Enable</button>
         </div>
 
         <div class="chat-header">
@@ -462,15 +499,24 @@
                     </div>
                 </div>
             </div>
-            <button class="logout-btn" id="logoutBtn">Logout</button>
+            <button class="logout-btn hidden" id="logoutBtn">Logout</button>
         </div>
 
-        <div class="connecting-banner" id="connectingBanner">
-            Connecting you with a live agent...
+        <div id="welcomeScreen" class="welcome-screen">
+            <h1>Welcome to Shopify Support</h1>
+            <p>Enter your details to connect with our support team</p>
+            <form class="welcome-form" id="welcomeForm">
+                <input type="text" id="customerName" placeholder="Your Name" required>
+                <input type="email" id="customerEmail" placeholder="Your Email" required>
+                <button type="submit">Start Chat</button>
+            </form>
         </div>
 
-        <!-- Messages Area (Similar to admin's .chat-area) -->
-        <div class="messages-area">
+        <div id="chatScreen" class="hidden">
+            <div class="connecting-banner" id="connectingBanner">
+                Connecting you with a live agent...
+            </div>
+            
             <div class="messages-wrapper">
                 <div class="messages-container" id="messagesContainer">
                     <div class="date-divider">Today</div>
@@ -479,7 +525,6 @@
         </div>
     </div>
 
-    <!-- Typing Indicator -->
     <div class="typing-indicator" id="typingIndicator">
         <span>Support is typing</span>
         <span class="typing-dot"></span>
@@ -487,7 +532,6 @@
         <span class="typing-dot"></span>
     </div>
 
-    <!-- Input Container -->
     <div class="input-container hidden" id="inputContainer">
         <div class="input-wrapper">
             <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
@@ -500,15 +544,15 @@
         import { getDatabase, ref, push, onValue, set, update, serverTimestamp, onDisconnect, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
         const firebaseConfig = {
-            apiKey: "AIzaSyA2E8L9VDUWXyJ1UgqlvTFpqYvRVNDUfho",
-            authDomain: "support-chat-6391e.firebaseapp.com",
-            databaseURL: "https://support-chat-6391e-default-rtdb.firebaseio.com",
-            projectId: "support-chat-6391e",
-            storageBucket: "support-chat-6391e.firebasestorage.app",
-            messagingSenderId: "817965074720",
-            appId: "1:817965074720:web:365b7c175189150b11af45",
-            measurementId: "G-BBQ6TPTJW5"
-        };
+    apiKey: "AIzaSyA2E8L9VDUWXyJ1UgqlvTFpqYvRVNDUfho",
+    authDomain: "support-chat-6391e.firebaseapp.com",
+    databaseURL: "https://support-chat-6391e-default-rtdb.firebaseio.com",
+    projectId: "support-chat-6391e",
+    storageBucket: "support-chat-6391e.firebasestorage.app",
+    messagingSenderId: "817965074720",
+    appId: "1:817965074720:web:365b7c175189150b11af45",
+    measurementId: "G-BBQ6TPTJW5"
+  };
 
         let app, database;
         
@@ -526,9 +570,12 @@
         let isTyping = false;
         let typingTimeout = null;
         let customerInitials = '';
+        let lastMessageCount = 0;
+        let userScrolledUp = false;
+        let isNewSession = false;
 
         const welcomeScreen = document.getElementById('welcomeScreen');
-        const chatContainer = document.getElementById('chatContainer');
+        const chatScreen = document.getElementById('chatScreen');
         const welcomeForm = document.getElementById('welcomeForm');
         const messagesContainer = document.getElementById('messagesContainer');
         const messageInput = document.getElementById('messageInput');
@@ -540,9 +587,29 @@
         const logoutBtn = document.getElementById('logoutBtn');
         const inputContainer = document.getElementById('inputContainer');
         const connectingBanner = document.getElementById('connectingBanner');
+        const notificationBanner = document.getElementById('notificationBanner');
+        const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
 
-        // Check for saved customer data
+        // Request notification permission
+        async function requestNotificationPermission() {
+            if ('Notification' in window) {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    notificationBanner.classList.remove('show');
+                }
+                return permission;
+            }
+            return 'denied';
+        }
+
+        // Check notification permission on load
         window.addEventListener('load', () => {
+            if ('Notification' in window && Notification.permission === 'default') {
+                setTimeout(() => {
+                    notificationBanner.classList.add('show');
+                }, 2000);
+            }
+
             const savedSession = localStorage.getItem('customerSession');
             if (savedSession) {
                 try {
@@ -551,10 +618,12 @@
                     customerEmail = sessionData.email;
                     sessionId = sessionData.sessionId;
                     customerInitials = getInitials(customerName);
+                    isNewSession = false;
                     
                     welcomeScreen.classList.add('hidden');
-                    chatContainer.classList.remove('hidden');
+                    chatScreen.classList.remove('hidden');
                     inputContainer.classList.remove('hidden');
+                    logoutBtn.classList.remove('hidden');
                     
                     resumeSession();
                 } catch (error) {
@@ -562,6 +631,15 @@
                     localStorage.removeItem('customerSession');
                 }
             }
+        });
+
+        enableNotificationsBtn.addEventListener('click', async () => {
+            await requestNotificationPermission();
+        });
+
+        messagesContainer.addEventListener('scroll', () => {
+            const isAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 100;
+            userScrolledUp = !isAtBottom;
         });
 
         function getInitials(name) {
@@ -575,7 +653,7 @@
             }, 5000);
         }
 
-        function playNotificationSound() {
+        function playPopSound() {
             try {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioContext.createOscillator();
@@ -584,24 +662,47 @@
                 oscillator.connect(gainNode);
                 gainNode.connect(audioContext.destination);
                 
-                oscillator.frequency.value = 800;
+                // Pop sound: Quick burst at 1000Hz
+                oscillator.frequency.value = 1000;
                 oscillator.type = 'sine';
                 
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
                 
                 oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.5);
+                oscillator.stop(audioContext.currentTime + 0.15);
             } catch (error) {
                 console.log('Audio playback error:', error);
             }
         }
 
+        function showBrowserNotification(title, body) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                const notification = new Notification(title, {
+                    body: body,
+                    icon: '🔔',
+                    badge: '🔔',
+                    tag: 'support-message',
+                    requireInteraction: false,
+                    silent: false
+                });
+
+                notification.onclick = function() {
+                    window.focus();
+                    notification.close();
+                };
+
+                // Auto-close after 10 seconds
+                setTimeout(() => notification.close(), 10000);
+            }
+        }
+
         function scrollToBottom() {
-            // Use requestAnimationFrame for smooth scrolling
-            requestAnimationFrame(() => {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            });
+            if (!userScrolledUp) {
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 50);
+            }
         }
 
         function resumeSession() {
@@ -620,8 +721,9 @@
                     set(ref(database, `sessions/${sessionId}/customerOnline`), false);
                 }
                 welcomeScreen.classList.remove('hidden');
-                chatContainer.classList.add('hidden');
+                chatScreen.classList.add('hidden');
                 inputContainer.classList.add('hidden');
+                logoutBtn.classList.add('hidden');
             }
         });
 
@@ -641,6 +743,7 @@
                         customerEmail = sessionData.email;
                         sessionId = sessionData.sessionId;
                         customerInitials = getInitials(customerName);
+                        isNewSession = false;
                         
                         set(ref(database, `sessions/${sessionId}/customerOnline`), true);
                         onDisconnect(ref(database, `sessions/${sessionId}/customerOnline`)).set(false);
@@ -661,6 +764,7 @@
                     customerEmail = inputEmail;
                     customerInitials = getInitials(customerName);
                     sessionId = push(ref(database, 'sessions')).key;
+                    isNewSession = true;
                     
                     await set(ref(database, `sessions/${sessionId}`), {
                         customerName,
@@ -702,7 +806,6 @@
                         });
                         
                         connectingBanner.classList.remove('show');
-                        scrollToBottom();
                     }, 2000);
 
                 } catch (error) {
@@ -713,8 +816,9 @@
             }
 
             welcomeScreen.classList.add('hidden');
-            chatContainer.classList.remove('hidden');
+            chatScreen.classList.remove('hidden');
             inputContainer.classList.remove('hidden');
+            logoutBtn.classList.remove('hidden');
             
             listenForMessages();
             listenForAdminStatus();
@@ -743,6 +847,7 @@
                 });
 
                 messageInput.value = '';
+                userScrolledUp = false;
                 stopTyping();
             } catch (error) {
                 console.error('Error sending message:', error);
@@ -772,39 +877,44 @@
 
         function listenForMessages() {
             const messagesRef = ref(database, `sessions/${sessionId}/messages`);
-            
             onValue(messagesRef, (snapshot) => {
                 const messages = snapshot.val();
-                
-                // Clear and re-render all messages
                 messagesContainer.innerHTML = '<div class="date-divider">Today</div>';
+                
+                const messageCount = messages ? Object.keys(messages).length : 0;
                 
                 if (messages) {
                     Object.entries(messages).forEach(([id, msg]) => {
                         if (msg.type === 'notification') {
                             displayNotification(msg);
+                        } else if (msg.type === 'ended') {
+                            displayEndedMessage(msg);
                         } else {
                             displayMessage(msg, id);
                         }
                         
-                        // Mark admin messages as read
                         if (msg.sender === 'admin' && !msg.read) {
                             update(ref(database, `sessions/${sessionId}/messages/${id}`), {
                                 read: true
                             });
                         }
                     });
-                    
-                    // Play sound for the most recent message if it's from admin
-                    const lastMsg = Object.values(messages).pop();
-                    if (lastMsg && lastMsg.sender !== 'customer') {
-                        playNotificationSound();
-                    }
                 }
-                
-                // Scroll to bottom
+
+                if (messageCount > lastMessageCount) {
+                    const lastMsg = messages ? Object.values(messages).pop() : null;
+                    if (lastMsg && lastMsg.sender !== 'customer' && lastMsg.type !== 'notification') {
+                        playPopSound();
+                        showBrowserNotification(
+                            '💬 New message from Support',
+                            lastMsg.text.substring(0, 100)
+                        );
+                    }
+                    userScrolledUp = false;
+                }
+                lastMessageCount = messageCount;
+
                 scrollToBottom();
-                
             }, (error) => {
                 console.error('Error listening for messages:', error);
                 showConnectionError();
@@ -816,6 +926,20 @@
             notifDiv.className = 'join-notification';
             notifDiv.textContent = msg.text;
             messagesContainer.appendChild(notifDiv);
+        }
+
+        function displayEndedMessage(msg) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ended';
+            messageDiv.style.justifyContent = 'center';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = msg.text;
+            bubble.style.maxWidth = '90%';
+            
+            messageDiv.appendChild(bubble);
+            messagesContainer.appendChild(messageDiv);
         }
 
         function displayMessage(msg, id) {
