@@ -159,12 +159,13 @@
             background: #555;
         }
 
-        /* WhatsApp-like chat layout */
+        /* WhatsApp-like chat layout - FIXED */
         .chat-screen {
             display: flex;
             flex-direction: column;
             height: 100%;
             width: 100%;
+            position: relative;
         }
 
         .connecting-banner {
@@ -182,23 +183,30 @@
             display: block;
         }
 
-        /* Messages area takes available space */
+        /* FIXED: Messages area with fixed height calculation */
+        .messages-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
         .messages-wrapper {
             flex: 1;
             overflow: hidden;
-            background: #fafafa;
             position: relative;
-            min-height: 0;
-            display: flex;
-            flex-direction: column;
         }
 
         .messages-container {
-            flex: 1;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             overflow-y: auto;
-            overflow-x: hidden;
             padding: 15px;
-            padding-bottom: 10px;
+            padding-bottom: 70px; /* Space for typing indicator */
             -webkit-overflow-scrolling: touch;
         }
 
@@ -302,7 +310,7 @@
             padding: 0 4px;
         }
 
-        /* WhatsApp-like typing indicator */
+        /* WhatsApp-like typing indicator - FIXED POSITION */
         .typing-indicator {
             padding: 10px 15px;
             background: white;
@@ -310,6 +318,7 @@
             color: #666;
             display: none;
             border-top: 1px solid #e5e5e5;
+            flex-shrink: 0;
         }
 
         .typing-indicator.show {
@@ -341,7 +350,7 @@
             30% { transform: translateY(-6px); }
         }
 
-        /* WhatsApp-like input container AT THE BOTTOM */
+        /* WhatsApp-like input container - ALWAYS VISIBLE AT BOTTOM */
         .input-container {
             padding: 12px 15px;
             background: white;
@@ -447,7 +456,7 @@
             
             .messages-container {
                 padding: 20px;
-                padding-bottom: 15px;
+                padding-bottom: 80px;
             }
             
             .input-container {
@@ -504,13 +513,16 @@
                 Connecting you with a live agent...
             </div>
             
-            <div class="messages-wrapper">
-                <div class="messages-container" id="messagesContainer">
-                    <div class="date-divider">Today</div>
+            <!-- Messages area - scrolls independently -->
+            <div class="messages-area">
+                <div class="messages-wrapper">
+                    <div class="messages-container" id="messagesContainer">
+                        <div class="date-divider">Today</div>
+                    </div>
                 </div>
             </div>
             
-            <!-- Typing indicator now between messages and input -->
+            <!-- These stay FIXED at bottom -->
             <div class="typing-indicator" id="typingIndicator">
                 <span>Support is typing</span>
                 <span class="typing-dot"></span>
@@ -518,7 +530,6 @@
                 <span class="typing-dot"></span>
             </div>
             
-            <!-- Input container at the BOTTOM like WhatsApp -->
             <div class="input-container hidden" id="inputContainer">
                 <div class="input-wrapper">
                     <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
@@ -594,9 +605,6 @@
             const isAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 100;
             userScrolledUp = !isAtBottom;
         });
-
-        // Auto-resize messages container on keyboard show/hide
-        window.addEventListener('resize', scrollToBottom);
 
         window.addEventListener('load', () => {
             // Request notification permission on load
