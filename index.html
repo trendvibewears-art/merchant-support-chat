@@ -32,7 +32,6 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            position: relative;
         }
 
         .chat-header {
@@ -42,8 +41,6 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #e5e5e5;
-            position: relative;
-            z-index: 100;
             flex-shrink: 0;
         }
 
@@ -166,6 +163,13 @@
             background: #555;
         }
 
+        /* MAIN FIX: Simplified layout similar to admin side */
+        .chat-screen {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
         .connecting-banner {
             background: #f0f9ff;
             color: #0369a1;
@@ -181,42 +185,47 @@
             display: block;
         }
 
-        /* FIXED SCROLLING LAYOUT */
-        .chat-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 0; /* CRITICAL for scrolling to work */
-        }
-
+        /* FIXED MESSAGES AREA - Simple flex layout */
         .messages-wrapper {
             flex: 1;
-            position: relative;
             overflow: hidden;
             background: #fafafa;
-            min-height: 0; /* CRITICAL for scrolling to work */
+            position: relative;
+            min-height: 0; /* CRITICAL for flex scrolling */
         }
 
         .messages-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            height: 100%;
             overflow-y: auto;
-            overflow-x: hidden;
             padding: 20px;
             padding-bottom: 20px;
             scroll-behavior: smooth;
         }
 
-        /* Ensure messages are visible */
+        /* Scrollbar styling */
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+
         .date-divider {
             text-align: center;
             margin: 20px 0;
             color: #999;
             font-size: 13px;
-            padding: 5px 0;
         }
 
         .join-notification {
@@ -224,7 +233,6 @@
             margin: 15px 0;
             color: #999;
             font-size: 13px;
-            padding: 5px 0;
         }
 
         .message {
@@ -232,7 +240,6 @@
             display: flex;
             gap: 8px;
             align-items: flex-end;
-            clear: both;
         }
 
         .message.customer {
@@ -269,7 +276,6 @@
             word-wrap: break-word;
             font-size: 15px;
             line-height: 1.4;
-            word-break: break-word;
         }
 
         .message.customer .message-bubble {
@@ -311,12 +317,12 @@
         }
 
         .typing-indicator {
-            position: absolute;
-            bottom: 80px;
+            position: fixed;
+            bottom: 75px;
             left: 50%;
             transform: translateX(-50%);
-            width: calc(100% - 40px);
-            max-width: 460px;
+            width: calc(100% - 20px);
+            max-width: 480px;
             padding: 8px 16px;
             background: white;
             border-radius: 8px;
@@ -360,7 +366,6 @@
             padding: 15px 20px;
             background: white;
             border-top: 1px solid #e5e5e5;
-            z-index: 100;
             flex-shrink: 0;
         }
 
@@ -425,24 +430,6 @@
             display: block;
         }
 
-        /* Scrollbar styling */
-        .messages-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .messages-container::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .messages-container::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 3px;
-        }
-
-        .messages-container::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
-        }
-
         @media (max-width: 600px) {
             body {
                 padding: 0;
@@ -470,7 +457,6 @@
 
             .messages-container {
                 padding: 15px;
-                padding-bottom: 15px;
             }
         }
     </style>
@@ -505,32 +491,30 @@
             </form>
         </div>
 
-        <div id="chatScreen" class="hidden">
-            <div class="chat-content">
-                <div class="connecting-banner" id="connectingBanner">
-                    Connecting you with a live agent...
-                </div>
-                
-                <div class="messages-wrapper">
-                    <div class="messages-container" id="messagesContainer">
-                        <div class="date-divider">Today</div>
-                    </div>
+        <div id="chatScreen" class="chat-screen hidden">
+            <div class="connecting-banner" id="connectingBanner">
+                Connecting you with a live agent...
+            </div>
+            
+            <div class="messages-wrapper">
+                <div class="messages-container" id="messagesContainer">
+                    <div class="date-divider">Today</div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div class="typing-indicator" id="typingIndicator">
-                <span>Support is typing</span>
-                <span class="typing-dot"></span>
-                <span class="typing-dot"></span>
-                <span class="typing-dot"></span>
-            </div>
+    <div class="typing-indicator" id="typingIndicator">
+        <span>Support is typing</span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+    </div>
 
-            <div class="input-container hidden" id="inputContainer">
-                <div class="input-wrapper">
-                    <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
-                    <button id="sendButton">Send</button>
-                </div>
-            </div>
+    <div class="input-container hidden" id="inputContainer">
+        <div class="input-wrapper">
+            <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
+            <button id="sendButton">Send</button>
         </div>
     </div>
 
