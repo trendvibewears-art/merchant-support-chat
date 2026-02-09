@@ -181,28 +181,42 @@
             display: block;
         }
 
+        /* FIXED SCROLLING LAYOUT */
+        .chat-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0; /* CRITICAL for scrolling to work */
+        }
+
         .messages-wrapper {
             flex: 1;
             position: relative;
             overflow: hidden;
             background: #fafafa;
-            min-height: 0;
+            min-height: 0; /* CRITICAL for scrolling to work */
         }
 
         .messages-container {
-            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             overflow-y: auto;
             overflow-x: hidden;
             padding: 20px;
-            padding-bottom: 150px;
+            padding-bottom: 20px;
             scroll-behavior: smooth;
         }
 
+        /* Ensure messages are visible */
         .date-divider {
             text-align: center;
             margin: 20px 0;
             color: #999;
             font-size: 13px;
+            padding: 5px 0;
         }
 
         .join-notification {
@@ -210,6 +224,7 @@
             margin: 15px 0;
             color: #999;
             font-size: 13px;
+            padding: 5px 0;
         }
 
         .message {
@@ -254,6 +269,7 @@
             word-wrap: break-word;
             font-size: 15px;
             line-height: 1.4;
+            word-break: break-word;
         }
 
         .message.customer .message-bubble {
@@ -295,12 +311,12 @@
         }
 
         .typing-indicator {
-            position: fixed;
-            bottom: 75px;
+            position: absolute;
+            bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
-            width: calc(100% - 20px);
-            max-width: 480px;
+            width: calc(100% - 40px);
+            max-width: 460px;
             padding: 8px 16px;
             background: white;
             border-radius: 8px;
@@ -341,17 +357,11 @@
         }
 
         .input-container {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 20px);
-            max-width: 480px;
             padding: 15px 20px;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            border-top: 1px solid #e5e5e5;
             z-index: 100;
+            flex-shrink: 0;
         }
 
         .input-wrapper {
@@ -401,6 +411,38 @@
             display: none !important;
         }
 
+        .connection-error {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            text-align: center;
+            font-size: 13px;
+            display: none;
+            flex-shrink: 0;
+        }
+
+        .connection-error.show {
+            display: block;
+        }
+
+        /* Scrollbar styling */
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 3px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
         @media (max-width: 600px) {
             body {
                 padding: 0;
@@ -418,30 +460,18 @@
             }
 
             .input-container {
-                bottom: 0;
-                border-radius: 0;
-                max-width: 100%;
-                width: 100%;
+                padding: 12px 15px;
             }
 
             .typing-indicator {
-                bottom: 65px;
-                max-width: calc(100% - 20px);
+                bottom: 75px;
+                max-width: calc(100% - 30px);
             }
-        }
 
-        .connection-error {
-            background: #fee;
-            color: #c33;
-            padding: 10px;
-            text-align: center;
-            font-size: 13px;
-            display: none;
-            flex-shrink: 0;
-        }
-
-        .connection-error.show {
-            display: block;
+            .messages-container {
+                padding: 15px;
+                padding-bottom: 15px;
+            }
         }
     </style>
 </head>
@@ -476,29 +506,31 @@
         </div>
 
         <div id="chatScreen" class="hidden">
-            <div class="connecting-banner" id="connectingBanner">
-                Connecting you with a live agent...
-            </div>
-            
-            <div class="messages-wrapper">
-                <div class="messages-container" id="messagesContainer">
-                    <div class="date-divider">Today</div>
+            <div class="chat-content">
+                <div class="connecting-banner" id="connectingBanner">
+                    Connecting you with a live agent...
+                </div>
+                
+                <div class="messages-wrapper">
+                    <div class="messages-container" id="messagesContainer">
+                        <div class="date-divider">Today</div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="typing-indicator" id="typingIndicator">
-        <span>Support is typing</span>
-        <span class="typing-dot"></span>
-        <span class="typing-dot"></span>
-        <span class="typing-dot"></span>
-    </div>
+            <div class="typing-indicator" id="typingIndicator">
+                <span>Support is typing</span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+            </div>
 
-    <div class="input-container hidden" id="inputContainer">
-        <div class="input-wrapper">
-            <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
-            <button id="sendButton">Send</button>
+            <div class="input-container hidden" id="inputContainer">
+                <div class="input-wrapper">
+                    <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
+                    <button id="sendButton">Send</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -690,11 +722,11 @@
         }
 
         function scrollToBottom() {
-            if (!userScrolledUp) {
-                setTimeout(() => {
+            setTimeout(() => {
+                if (!userScrolledUp) {
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                }, 50);
-            }
+                }
+            }, 100);
         }
 
         function resumeSession() {
@@ -804,6 +836,7 @@
                         });
                         
                         connectingBanner.classList.remove('show');
+                        scrollToBottom();
                     }, 2000);
 
                 } catch (error) {
@@ -847,6 +880,7 @@
                 messageInput.value = '';
                 userScrolledUp = false;
                 stopTyping();
+                scrollToBottom();
             } catch (error) {
                 console.error('Error sending message:', error);
                 showConnectionError();
@@ -904,15 +938,14 @@
                     if (lastMsg && lastMsg.sender !== 'customer' && lastMsg.type !== 'notification') {
                         playWhatsAppSound();
                         showBrowserNotification(
-                            '💬 New message from Support',
+                            '💬 New message from Shopify Support',
                             lastMsg.text.substring(0, 100)
                         );
                     }
                     userScrolledUp = false;
+                    scrollToBottom();
                 }
                 lastMessageCount = messageCount;
-
-                scrollToBottom();
             }, (error) => {
                 console.error('Error listening for messages:', error);
                 showConnectionError();
