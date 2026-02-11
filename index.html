@@ -46,17 +46,24 @@
             gap: 12px;
         }
 
-        .support-avatar {
+        .agent-avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: #e5e5e5;
+            background: #e8f5e9;
+            color: #2e7d32;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            color: #666;
             font-size: 14px;
+            border: 2px solid #c8e6c9;
+        }
+
+        .agent-avatar.waiting {
+            background: #e5e5e5;
+            color: #666;
+            border-color: #ccc;
         }
 
         .header-text h2 {
@@ -159,7 +166,6 @@
             background: #555;
         }
 
-        /* WhatsApp-like chat layout - FIXED */
         .chat-screen {
             display: flex;
             flex-direction: column;
@@ -168,22 +174,6 @@
             position: relative;
         }
 
-        .connecting-banner {
-            background: #f0f9ff;
-            color: #0369a1;
-            padding: 10px 20px;
-            text-align: center;
-            font-size: 13px;
-            border-bottom: 1px solid #e0f2fe;
-            display: none;
-            flex-shrink: 0;
-        }
-
-        .connecting-banner.show {
-            display: block;
-        }
-
-        /* FIXED: Messages area with fixed height calculation */
         .messages-area {
             flex: 1;
             display: flex;
@@ -206,11 +196,10 @@
             bottom: 0;
             overflow-y: auto;
             padding: 15px;
-            padding-bottom: 70px; /* Space for typing indicator */
+            padding-bottom: 70px;
             -webkit-overflow-scrolling: touch;
         }
 
-        /* WhatsApp-like messages */
         .date-divider {
             text-align: center;
             margin: 15px 0;
@@ -225,6 +214,65 @@
             color: #999;
             font-size: 13px;
             padding: 5px 0;
+        }
+
+        /* System messages */
+        .system-message {
+            text-align: center;
+            margin: 12px 0;
+            color: #0369a1;
+            font-size: 13px;
+            padding: 8px 16px;
+            background: #f0f9ff;
+            border-radius: 20px;
+            display: inline-block;
+            align-self: center;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Contacting Advisor indicator */
+        .contacting-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 15px 0;
+            color: #666;
+            font-size: 13px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 20px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .contacting-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .contacting-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #666;
+            animation: wave 1.4s infinite;
+        }
+
+        .contacting-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .contacting-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes wave {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
         }
 
         .message {
@@ -242,14 +290,24 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: #e5e5e5;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 12px;
             font-weight: 600;
-            color: #666;
             flex-shrink: 0;
+        }
+
+        .message.customer .message-avatar {
+            background: #e3f2fd;
+            color: #0d47a1;
+            border: 2px solid #bbdefb;
+        }
+
+        .message.admin .message-avatar {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 2px solid #c8e6c9;
         }
 
         .message-content {
@@ -260,6 +318,13 @@
 
         .message.customer .message-content {
             align-items: flex-end;
+        }
+
+        .agent-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: #2e7d32;
+            margin-bottom: 2px;
         }
 
         .message-bubble {
@@ -285,21 +350,6 @@
             border: 1px solid #e5e5e5;
         }
 
-        .message.system .message-bubble {
-            background: #f0f9ff;
-            color: #0369a1;
-            border: 1px solid #e0f2fe;
-            border-radius: 12px;
-        }
-
-        .message.ended .message-bubble {
-            background: #fef2f2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-            border-radius: 12px;
-            text-align: center;
-        }
-
         .message-info {
             font-size: 11px;
             color: #999;
@@ -310,7 +360,6 @@
             padding: 0 4px;
         }
 
-        /* WhatsApp-like typing indicator - FIXED POSITION */
         .typing-indicator {
             padding: 10px 15px;
             background: white;
@@ -350,7 +399,6 @@
             30% { transform: translateY(-6px); }
         }
 
-        /* WhatsApp-like input container - ALWAYS VISIBLE AT BOTTOM */
         .input-container {
             padding: 12px 15px;
             background: white;
@@ -486,9 +534,9 @@
 
         <div class="chat-header">
             <div class="header-info">
-                <div class="support-avatar">SS</div>
+                <div class="agent-avatar waiting" id="agentAvatar">👤</div>
                 <div class="header-text">
-                    <h2>Support</h2>
+                    <h2 id="agentNameHeader">Shopify Support</h2>
                     <div class="status">
                         <span class="status-dot" id="adminStatus"></span>
                         <span id="statusText">Connecting...</span>
@@ -509,11 +557,6 @@
         </div>
 
         <div id="chatScreen" class="chat-screen hidden">
-            <div class="connecting-banner" id="connectingBanner">
-                Connecting you with a live agent...
-            </div>
-            
-            <!-- Messages area - scrolls independently -->
             <div class="messages-area">
                 <div class="messages-wrapper">
                     <div class="messages-container" id="messagesContainer">
@@ -522,7 +565,6 @@
                 </div>
             </div>
             
-            <!-- These stay FIXED at bottom -->
             <div class="typing-indicator" id="typingIndicator">
                 <span>Support is typing</span>
                 <span class="typing-dot"></span>
@@ -544,15 +586,54 @@
         import { getDatabase, ref, push, onValue, set, update, serverTimestamp, onDisconnect, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
         const firebaseConfig = {
-    apiKey: "AIzaSyA2E8L9VDUWXyJ1UgqlvTFpqYvRVNDUfho",
-    authDomain: "support-chat-6391e.firebaseapp.com",
-    databaseURL: "https://support-chat-6391e-default-rtdb.firebaseio.com",
-    projectId: "support-chat-6391e",
-    storageBucket: "support-chat-6391e.firebasestorage.app",
-    messagingSenderId: "817965074720",
-    appId: "1:817965074720:web:365b7c175189150b11af45",
-    measurementId: "G-BBQ6TPTJW5"
-  };
+            apiKey: "AIzaSyA2E8L9VDUWXyJ1UgqlvTFpqYvRVNDUfho",
+            authDomain: "support-chat-6391e.firebaseapp.com",
+            databaseURL: "https://support-chat-6391e-default-rtdb.firebaseio.com",
+            projectId: "support-chat-6391e",
+            storageBucket: "support-chat-6391e.firebasestorage.app",
+            messagingSenderId: "817965074720",
+            appId: "1:817965074720:web:365b7c175189150b11af45",
+            measurementId: "G-BBQ6TPTJW5"
+        };
+
+        // ==================== AGENT PERSONAS (Same as admin) ====================
+        const AGENT_PERSONAS = [
+            { 
+                id: 'sarah', 
+                name: 'Sarah Johnson', 
+                initials: 'SJ',
+                role: 'Senior Support Specialist',
+                color: '#e8f5e9'
+            },
+            { 
+                id: 'mike', 
+                name: 'Mike Chen', 
+                initials: 'MC',
+                role: 'Technical Support',
+                color: '#e8f5e9'
+            },
+            { 
+                id: 'emma', 
+                name: 'Emma Williams', 
+                initials: 'EW',
+                role: 'Customer Support',
+                color: '#e8f5e9'
+            },
+            { 
+                id: 'david', 
+                name: 'David Kumar', 
+                initials: 'DK',
+                role: 'Billing Specialist',
+                color: '#e8f5e9'
+            },
+            { 
+                id: 'lisa', 
+                name: 'Lisa Anderson', 
+                initials: 'LA',
+                role: 'Product Support',
+                color: '#e8f5e9'
+            }
+        ];
 
         let app, database;
         
@@ -572,7 +653,8 @@
         let customerInitials = '';
         let lastMessageCount = 0;
         let userScrolledUp = false;
-        let isNewSession = false;
+        let assignedAgent = null;
+        let isAgentAssigned = false;
         let notificationPermissionGranted = false;
 
         const welcomeScreen = document.getElementById('welcomeScreen');
@@ -587,9 +669,36 @@
         const connectionError = document.getElementById('connectionError');
         const logoutBtn = document.getElementById('logoutBtn');
         const inputContainer = document.getElementById('inputContainer');
-        const connectingBanner = document.getElementById('connectingBanner');
+        const agentAvatar = document.getElementById('agentAvatar');
+        const agentNameHeader = document.getElementById('agentNameHeader');
 
-        // Request notification permission immediately
+        // ==================== ROUND-ROBIN ASSIGNMENT ====================
+        async function assignAgentToCustomer() {
+            const counterRef = ref(database, 'system/agentCounter');
+            
+            try {
+                const snapshot = await get(counterRef);
+                let counter = snapshot.exists() ? snapshot.val() : 0;
+                
+                // Get next agent persona (round-robin)
+                const nextIndex = counter % AGENT_PERSONAS.length;
+                const assignedAgent = AGENT_PERSONAS[nextIndex];
+                
+                // Increment counter for next customer
+                await set(counterRef, counter + 1);
+                
+                console.log(`🎯 Customer assigned to: ${assignedAgent.name}`);
+                return assignedAgent;
+                
+            } catch (error) {
+                console.error('Error assigning agent:', error);
+                // Fallback to random assignment
+                const randomIndex = Math.floor(Math.random() * AGENT_PERSONAS.length);
+                return AGENT_PERSONAS[randomIndex];
+            }
+        }
+
+        // Request notification permission
         async function requestNotificationPermission() {
             if ('Notification' in window && Notification.permission === 'default') {
                 const permission = await Notification.requestPermission();
@@ -607,7 +716,6 @@
         });
 
         window.addEventListener('load', () => {
-            // Request notification permission on load
             requestNotificationPermission();
 
             const savedSession = localStorage.getItem('customerSession');
@@ -618,7 +726,18 @@
                     customerEmail = sessionData.email;
                     sessionId = sessionData.sessionId;
                     customerInitials = getInitials(customerName);
-                    isNewSession = false;
+                    
+                    // Check if session has assigned agent
+                    get(ref(database, `sessions/${sessionId}/assignedAgent`)).then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const agentId = snapshot.val();
+                            assignedAgent = AGENT_PERSONAS.find(a => a.id === agentId);
+                            if (assignedAgent) {
+                                updateAgentUI(assignedAgent);
+                                isAgentAssigned = true;
+                            }
+                        }
+                    });
                     
                     welcomeScreen.classList.add('hidden');
                     chatScreen.classList.remove('hidden');
@@ -637,6 +756,12 @@
             return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         }
 
+        function updateAgentUI(agent) {
+            agentAvatar.textContent = agent.initials;
+            agentAvatar.className = 'agent-avatar';
+            agentNameHeader.textContent = agent.name;
+        }
+
         function showConnectionError() {
             connectionError.classList.add('show');
             setTimeout(() => {
@@ -644,29 +769,27 @@
             }, 5000);
         }
 
-        // WhatsApp notification sound - Two-tone "ding-dong"
+        // WhatsApp notification sound
         function playWhatsAppSound() {
             try {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 
-                // First tone (higher pitch)
                 const oscillator1 = audioContext.createOscillator();
                 const gainNode1 = audioContext.createGain();
                 oscillator1.connect(gainNode1);
                 gainNode1.connect(audioContext.destination);
-                oscillator1.frequency.value = 900; // E note
+                oscillator1.frequency.value = 900;
                 oscillator1.type = 'sine';
                 gainNode1.gain.setValueAtTime(0.5, audioContext.currentTime);
                 gainNode1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
                 oscillator1.start(audioContext.currentTime);
                 oscillator1.stop(audioContext.currentTime + 0.2);
                 
-                // Second tone (lower pitch) - starts after first
                 const oscillator2 = audioContext.createOscillator();
                 const gainNode2 = audioContext.createGain();
                 oscillator2.connect(gainNode2);
                 gainNode2.connect(audioContext.destination);
-                oscillator2.frequency.value = 600; // D note
+                oscillator2.frequency.value = 600;
                 oscillator2.type = 'sine';
                 gainNode2.gain.setValueAtTime(0.5, audioContext.currentTime + 0.15);
                 gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
@@ -679,51 +802,22 @@
 
         function showBrowserNotification(title, body) {
             if ('Notification' in window && Notification.permission === 'granted') {
-                // Use service worker if available for better background support
-                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.ready.then(registration => {
-                        registration.showNotification(title, {
-                            body: body,
-                            icon: '/favicon.ico',
-                            badge: '/favicon.ico',
-                            tag: 'support-message',
-                            requireInteraction: false,
-                            vibrate: [200, 100, 200],
-                            data: { url: window.location.href }
-                        });
-                    }).catch(() => {
-                        // Fallback to regular notification
-                        showRegularNotification(title, body);
-                    });
-                } else {
-                    showRegularNotification(title, body);
-                }
+                const notification = new Notification(title, {
+                    body: body,
+                    icon: '/favicon.ico',
+                    badge: '/favicon.ico',
+                    tag: 'support-message',
+                    requireInteraction: false,
+                    vibrate: [200, 100, 200]
+                });
+
+                notification.onclick = function() {
+                    window.focus();
+                    notification.close();
+                };
+
+                setTimeout(() => notification.close(), 10000);
             }
-        }
-
-        function showRegularNotification(title, body) {
-            const notification = new Notification(title, {
-                body: body,
-                icon: '/favicon.ico',
-                badge: '/favicon.ico',
-                tag: 'support-message',
-                requireInteraction: false,
-                vibrate: [200, 100, 200]
-            });
-
-            notification.onclick = function() {
-                window.focus();
-                notification.close();
-            };
-
-            setTimeout(() => notification.close(), 10000);
-        }
-
-        // Register service worker for background notifications
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').catch(() => {
-                // Service worker not available, use regular notifications
-            });
         }
 
         function scrollToBottom() {
@@ -756,10 +850,10 @@
             }
         });
 
+        // ==================== MAIN CHAT START ====================
         welcomeForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Request notification permission when starting chat
             if (Notification.permission === 'default') {
                 await requestNotificationPermission();
             }
@@ -778,7 +872,6 @@
                         customerEmail = sessionData.email;
                         sessionId = sessionData.sessionId;
                         customerInitials = getInitials(customerName);
-                        isNewSession = false;
                         
                         set(ref(database, `sessions/${sessionId}/customerOnline`), true);
                         onDisconnect(ref(database, `sessions/${sessionId}/customerOnline`)).set(false);
@@ -787,7 +880,6 @@
                         sessionId = null;
                     }
                 } catch (error) {
-                    console.error('Error resuming session:', error);
                     localStorage.removeItem('customerSession');
                     sessionId = null;
                 }
@@ -799,17 +891,22 @@
                     customerEmail = inputEmail;
                     customerInitials = getInitials(customerName);
                     sessionId = push(ref(database, 'sessions')).key;
-                    isNewSession = true;
                     
+                    // STEP 1: Assign agent via round-robin
+                    assignedAgent = await assignAgentToCustomer();
+                    
+                    // Create session with assigned agent
                     await set(ref(database, `sessions/${sessionId}`), {
                         customerName,
                         customerEmail,
                         startedAt: serverTimestamp(),
                         customerOnline: true,
                         adminOnline: false,
-                        unreadByAdmin: 1,
+                        unreadByAdmin: 0,
                         archived: false,
-                        newCustomer: true
+                        newCustomer: true,
+                        assignedAgent: assignedAgent.id, // Store which agent is assigned
+                        agentAssigned: true
                     });
 
                     localStorage.setItem('customerSession', JSON.stringify({
@@ -822,6 +919,7 @@
                     set(customerPresenceRef, true);
                     onDisconnect(customerPresenceRef).set(false);
 
+                    // STEP 2: Send welcome message
                     const joinRef = push(ref(database, `sessions/${sessionId}/messages`));
                     await set(joinRef, {
                         type: 'notification',
@@ -829,20 +927,15 @@
                         timestamp: serverTimestamp()
                     });
 
-                    connectingBanner.classList.add('show');
-                    
-                    setTimeout(async () => {
-                        const welcomeRef = push(ref(database, `sessions/${sessionId}/messages`));
-                        await set(welcomeRef, {
-                            text: "Hello! Welcome to our support team. How can we assist you today?",
-                            sender: 'system',
-                            timestamp: serverTimestamp(),
-                            read: true
-                        });
-                        
-                        connectingBanner.classList.remove('show');
-                        scrollToBottom();
-                    }, 2000);
+                    // STEP 3: Send automated greeting message
+                    const greetingRef = push(ref(database, `sessions/${sessionId}/messages`));
+                    await set(greetingRef, {
+                        text: "An advisor will join in a moment. If you share some details, they'll be able to help you more quickly. What are you working on today?",
+                        sender: 'system',
+                        type: 'greeting',
+                        timestamp: serverTimestamp(),
+                        read: true
+                    });
 
                 } catch (error) {
                     console.error('Error starting session:', error);
@@ -856,12 +949,21 @@
             inputContainer.classList.remove('hidden');
             logoutBtn.classList.remove('hidden');
             
+            // Update UI with agent info if assigned
+            if (assignedAgent) {
+                updateAgentUI(assignedAgent);
+            }
+            
             listenForMessages();
             listenForAdminStatus();
             listenForAdminTyping();
             messageInput.focus();
+            
+            // Auto scroll to show welcome message
+            setTimeout(scrollToBottom, 500);
         });
 
+        // ==================== SEND MESSAGE ====================
         function sendMessage() {
             const message = messageInput.value.trim();
             if (!message) return;
@@ -886,10 +988,93 @@
                 userScrolledUp = false;
                 stopTyping();
                 scrollToBottom();
+                
+                // If agent hasn't joined yet, show contacting indicator and auto-join after 3-5 seconds
+                if (!isAgentAssigned) {
+                    // Show contacting indicator in UI (not stored in DB)
+                    showContactingIndicator();
+                    
+                    // Simulate agent joining after delay
+                    setTimeout(async () => {
+                        await simulateAgentJoin();
+                    }, 3000 + Math.random() * 2000); // Random between 3-5 seconds
+                }
+                
             } catch (error) {
                 console.error('Error sending message:', error);
                 showConnectionError();
             }
+        }
+
+        function showContactingIndicator() {
+            // Create temporary contacting indicator (not stored in DB)
+            const contactingDiv = document.createElement('div');
+            contactingDiv.className = 'contacting-indicator';
+            contactingDiv.id = 'contactingIndicator';
+            contactingDiv.innerHTML = `
+                <span>Contacting Advisor</span>
+                <div class="contacting-dots">
+                    <span class="contacting-dot"></span>
+                    <span class="contacting-dot"></span>
+                    <span class="contacting-dot"></span>
+                </div>
+            `;
+            messagesContainer.appendChild(contactingDiv);
+            scrollToBottom();
+        }
+
+        function removeContactingIndicator() {
+            const indicator = document.getElementById('contactingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        async function simulateAgentJoin() {
+            if (isAgentAssigned) return;
+            
+            isAgentAssigned = true;
+            
+            // Remove contacting indicator
+            removeContactingIndicator();
+            
+            // Get assigned agent (should already be set)
+            if (!assignedAgent) {
+                assignedAgent = await assignAgentToCustomer();
+                await update(ref(database, `sessions/${sessionId}`), {
+                    assignedAgent: assignedAgent.id
+                });
+            }
+            
+            // Update UI with agent info
+            updateAgentUI(assignedAgent);
+            
+            // Send "An advisor has joined" message
+            const joinRef = push(ref(database, `sessions/${sessionId}/messages`));
+            await set(joinRef, {
+                type: 'notification',
+                text: 'An advisor has joined the chat',
+                timestamp: serverTimestamp()
+            });
+            
+            // Send agent greeting message
+            const greetingRef = push(ref(database, `sessions/${sessionId}/messages`));
+            await set(greetingRef, {
+                text: `Hello, this is ${assignedAgent.name}, your Shopify Support Advisor!`,
+                sender: 'admin',
+                senderName: assignedAgent.name,
+                senderInitials: assignedAgent.initials,
+                timestamp: serverTimestamp(),
+                read: true
+            });
+            
+            // Update admin online status
+            update(ref(database, `sessions/${sessionId}`), {
+                adminOnline: true,
+                unreadByAdmin: 0
+            });
+            
+            scrollToBottom();
         }
 
         sendButton.addEventListener('click', sendMessage);
@@ -912,6 +1097,7 @@
             set(ref(database, `sessions/${sessionId}/customerTyping`), false);
         }
 
+        // ==================== LISTEN FOR MESSAGES ====================
         function listenForMessages() {
             const messagesRef = ref(database, `sessions/${sessionId}/messages`);
             onValue(messagesRef, (snapshot) => {
@@ -924,8 +1110,8 @@
                     Object.entries(messages).forEach(([id, msg]) => {
                         if (msg.type === 'notification') {
                             displayNotification(msg);
-                        } else if (msg.type === 'ended') {
-                            displayEndedMessage(msg);
+                        } else if (msg.type === 'greeting') {
+                            displayGreetingMessage(msg);
                         } else {
                             displayMessage(msg, id);
                         }
@@ -964,9 +1150,9 @@
             messagesContainer.appendChild(notifDiv);
         }
 
-        function displayEndedMessage(msg) {
+        function displayGreetingMessage(msg) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'message ended';
+            messageDiv.className = 'message system';
             messageDiv.style.justifyContent = 'center';
             
             const bubble = document.createElement('div');
@@ -984,10 +1170,23 @@
             
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
-            avatar.textContent = msg.sender === 'customer' ? customerInitials : 'SS';
+            
+            if (msg.sender === 'customer') {
+                avatar.textContent = customerInitials;
+            } else {
+                avatar.textContent = msg.senderInitials || 'SP';
+            }
             
             const content = document.createElement('div');
             content.className = 'message-content';
+            
+            // Add agent name for admin messages
+            if (msg.sender === 'admin' && msg.senderName) {
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'agent-name';
+                nameDiv.textContent = msg.senderName;
+                content.appendChild(nameDiv);
+            }
             
             const bubble = document.createElement('div');
             bubble.className = 'message-bubble';
@@ -997,7 +1196,7 @@
             info.className = 'message-info';
             
             const time = msg.timestamp ? formatTime(msg.timestamp) : 'now';
-            const receipt = msg.read ? 'seen' : 'delivered';
+            const receipt = msg.read ? 'Seen' : 'Delivered';
             
             if (msg.sender === 'customer') {
                 info.innerHTML = `<span>${time}, ${receipt}</span>`;
@@ -1017,7 +1216,7 @@
             const now = new Date();
             const diff = (now - date) / 1000;
             
-            if (diff < 60) return 'a moment ago';
+            if (diff < 60) return 'just now';
             if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
@@ -1028,10 +1227,10 @@
                 const online = snapshot.val();
                 if (online) {
                     adminStatus.classList.add('online');
-                    statusText.textContent = 'online';
+                    statusText.textContent = 'Online';
                 } else {
                     adminStatus.classList.remove('online');
-                    statusText.textContent = 'offline';
+                    statusText.textContent = 'Offline';
                 }
             });
         }
