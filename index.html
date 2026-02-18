@@ -108,7 +108,7 @@
             50% { opacity: 0.5; }
         }
 
-        /* ===== NEW LOGOUT BUTTON STYLES FOR CUSTOMER ===== */
+        /* Logout Button */
         .logout-btn {
             display: flex;
             align-items: center;
@@ -139,14 +139,13 @@
             transform: translateX(3px);
         }
 
-        /* Mobile responsive */
         @media (max-width: 768px) {
             .logout-btn {
                 padding: 6px 12px;
             }
             
             .logout-btn span {
-                display: none; /* Hide text on mobile, show only icon */
+                display: none;
             }
             
             .logout-btn svg {
@@ -154,8 +153,8 @@
                 height: 20px;
             }
         }
-        /* ===== END OF NEW LOGOUT BUTTON STYLES ===== */
 
+        /* Install PWA Banner */
         .install-prompt {
             background: #95BF47;
             color: white;
@@ -182,7 +181,8 @@
             cursor: pointer;
         }
 
-        .notification-banner {
+        /* Notification Permission Banner (In-app banner) */
+        .notification-permission-banner {
             background: #fef3c7;
             color: #92400e;
             padding: 12px 20px;
@@ -190,13 +190,14 @@
             display: none;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #fde68a;
         }
 
-        .notification-banner.show {
+        .notification-permission-banner.show {
             display: flex;
         }
 
-        .notification-banner button {
+        .notification-permission-banner button {
             padding: 6px 16px;
             background: #92400e;
             color: white;
@@ -624,10 +625,10 @@
             <button id="installBtn">Install</button>
         </div>
 
-        <!-- Notification Permission Banner -->
-        <div class="notification-banner" id="notificationBanner">
-            <span>🔔 Enable notifications for real-time alerts</span>
-            <button id="enableNotificationsBtn">Enable</button>
+        <!-- Notification Permission Banner (IN-APP BANNER) -->
+        <div class="notification-permission-banner" id="notificationBanner">
+            <span>🔔 Allow notifications to get alerts when support replies</span>
+            <button id="enableNotificationsBtn">Allow</button>
         </div>
 
         <div class="connection-error" id="connectionError">
@@ -649,7 +650,7 @@
                 </div>
             </div>
             
-            <!-- ===== NEW LOGOUT BUTTON FOR CUSTOMER ===== -->
+            <!-- Logout Button -->
             <button class="logout-btn hidden" id="logoutBtn">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -658,7 +659,6 @@
                 </svg>
                 <span>Sign out</span>
             </button>
-            <!-- ===== END OF NEW LOGOUT BUTTON ===== -->
             
         </div>
 
@@ -770,7 +770,7 @@
         const notificationBanner = document.getElementById('notificationBanner');
         const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
 
-        // ==================== PWA INSTALL & NOTIFICATIONS ====================
+        // ==================== REAL SYSTEM BANNER NOTIFICATIONS (LIKE WHATSAPP) ====================
         
         // Check if running as PWA
         isPWA = window.matchMedia('(display-mode: standalone)').matches || 
@@ -797,81 +797,162 @@
             }
         });
 
-        // Setup notifications
-        async function setupNotifications() {
-            if (!('Notification' in window)) return;
+        // Setup system notifications
+        async function setupSystemNotifications() {
+            if (!('Notification' in window)) {
+                console.log('Browser does not support notifications');
+                notificationBanner.style.display = 'none';
+                return;
+            }
 
+            // Check current permission
             if (Notification.permission === 'granted') {
+                console.log('Notification permission granted');
                 notificationBanner.classList.remove('show');
-            } else if (Notification.permission === 'default') {
+                
+                // Register service worker for better system notifications
+                registerServiceWorker();
+                
+            } else if (Notification.permission === 'denied') {
+                console.log('Notifications blocked');
+                notificationBanner.style.display = 'none';
+            } else {
+                // Show banner to ask for permission
                 notificationBanner.classList.add('show');
             }
 
+            // Handle enable button click
             enableNotificationsBtn.addEventListener('click', async () => {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    notificationBanner.classList.remove('show');
-                    
-                    if (isPWA) {
-                        showNativeNotification(
-                            '✅ Notifications Enabled',
-                            'You will receive alerts when support replies'
+                try {
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
+                        notificationBanner.classList.remove('show');
+                        registerServiceWorker();
+                        
+                        // Show test system notification
+                        showSystemNotification(
+                            '✅ Shopify Support',
+                            'You will now receive notifications when support replies',
+                            'test'
                         );
+                    } else if (permission === 'denied') {
+                        alert('Notifications blocked. Please enable in your phone settings.');
+                        notificationBanner.style.display = 'none';
                     }
+                } catch (error) {
+                    console.error('Error requesting permission:', error);
                 }
             });
         }
 
-        // REAL NATIVE NOTIFICATION
-        function showNativeNotification(title, body) {
-            if (isPWA && 'Notification' in window && Notification.permission === 'granted') {
+        // Register service worker for better background notifications
+        async function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
                 try {
-                    const notification = new Notification(title, {
-                        body: body,
-                        icon: 'https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png',
-                        badge: 'https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png',
-                        tag: 'shopify-' + Date.now(),
-                        vibrate: [200, 100, 200],
-                        requireInteraction: false
-                    });
-
-                    notification.onclick = () => {
-                        window.focus();
-                        notification.close();
-                    };
-
-                    setTimeout(() => notification.close(), 10000);
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    console.log('Service Worker registered:', registration);
+                    
+                    // Wait for service worker to be ready
+                    await navigator.serviceWorker.ready;
+                    console.log('Service Worker is ready');
                     
                 } catch (error) {
-                    console.log('Native notification failed:', error);
-                    playWhatsAppSound();
+                    console.log('Service Worker registration failed:', error);
                 }
-            } else {
-                playWhatsAppSound();
-                showInAppNotification(title, body);
             }
         }
 
-        function showInAppNotification(title, message) {
-            const notif = document.createElement('div');
-            notif.style.cssText = `
-                position: fixed;
-                top: 80px;
-                right: 20px;
-                background: #95BF47;
-                color: white;
-                padding: 15px;
-                border-radius: 10px;
-                z-index: 10000;
-                max-width: 300px;
-                animation: slideIn 0.3s;
-            `;
-            notif.innerHTML = `<strong>${title}</strong><br>${message}`;
-            document.body.appendChild(notif);
-            setTimeout(() => notif.remove(), 5000);
+        // SHOW REAL SYSTEM BANNER NOTIFICATION (appears at top of phone screen)
+        function showSystemNotification(title, body, type = 'message') {
+            // Check permission
+            if (Notification.permission !== 'granted') {
+                console.log('Cannot show notification - permission not granted');
+                playSound();
+                return;
+            }
+
+            // Don't show notification if user is currently in the chat
+            if (document.hasFocus() && currentSessionId === sessionId) {
+                console.log('User is in chat, playing sound only');
+                playSound();
+                return;
+            }
+
+            console.log('Showing system notification:', title);
+
+            // Options for the notification
+            const options = {
+                body: body,
+                icon: 'https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png',
+                badge: 'https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png',
+                tag: 'shopify-' + Date.now(),
+                vibrate: [200, 100, 200],
+                silent: false,
+                requireInteraction: false,
+                data: {
+                    url: window.location.href,
+                    sessionId: sessionId,
+                    timestamp: Date.now()
+                }
+            };
+
+            // Add actions for message notifications
+            if (type === 'message') {
+                options.actions = [
+                    {
+                        action: 'open',
+                        title: 'Open Chat'
+                    },
+                    {
+                        action: 'close',
+                        title: 'Dismiss'
+                    }
+                ];
+            }
+
+            try {
+                // Create and show the notification
+                const notification = new Notification(title, options);
+                
+                console.log('System notification sent successfully');
+
+                // Handle notification click
+                notification.onclick = (event) => {
+                    event.preventDefault();
+                    window.focus();
+                    
+                    // If there's a specific session, bring it up
+                    if (sessionId) {
+                        // The chat is already loaded
+                    }
+                    
+                    notification.close();
+                };
+
+                // Handle notification actions
+                notification.onaction = (event) => {
+                    if (event.action === 'open') {
+                        window.focus();
+                    }
+                    notification.close();
+                };
+
+                // Auto close after 10 seconds if not interacted with
+                setTimeout(() => {
+                    notification.close();
+                }, 10000);
+
+                // Play sound as well
+                playSound();
+
+            } catch (error) {
+                console.error('Failed to show system notification:', error);
+                playSound();
+            }
         }
 
-        function playWhatsAppSound() {
+        // Play notification sound
+        function playSound() {
             try {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 
@@ -897,7 +978,7 @@
                 oscillator2.start(audioContext.currentTime + 0.15);
                 oscillator2.stop(audioContext.currentTime + 0.4);
             } catch (error) {
-                console.log('Audio error:', error);
+                console.log('Sound error:', error);
             }
         }
 
@@ -940,7 +1021,8 @@
         });
 
         window.addEventListener('load', () => {
-            setupNotifications();
+            // Setup system notifications first
+            setupSystemNotifications();
 
             const savedSession = localStorage.getItem('customerSession');
             if (savedSession) {
@@ -1227,12 +1309,16 @@
 
                 if (messageCount > lastMessageCount) {
                     const lastMsg = messages ? Object.values(messages).pop() : null;
+                    
+                    // Show system notification for new admin messages
                     if (lastMsg && lastMsg.sender === 'admin') {
-                        showNativeNotification(
-                            `💬 New message from ${lastMsg.senderName || 'Support'}`,
-                            lastMsg.text.substring(0, 100)
+                        showSystemNotification(
+                            `💬 ${lastMsg.senderName || 'Shopify Support'}`,
+                            lastMsg.text.substring(0, 100),
+                            'message'
                         );
                     }
+                    
                     userScrolledUp = false;
                     scrollToBottom();
                 }
