@@ -2,18 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Shopify Customer Support</title>
-    
-    <!-- PWA Support for Mobile Notifications -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#95BF47">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Shopify Support">
-    <link rel="apple-touch-icon" href="https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png">
-    <link rel="icon" type="image/png" href="https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merchant Customer Support</title>
     <style>
         * {
             margin: 0;
@@ -28,16 +18,21 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 0;
+            padding: 10px;
         }
 
         .chat-container {
             background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             width: 100%;
-            height: 100vh;
+            max-width: 500px;
+            height: 90vh;
+            max-height: 700px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
         }
 
         .chat-header {
@@ -47,6 +42,8 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #e5e5e5;
+            position: relative;
+            z-index: 100;
             flex-shrink: 0;
         }
 
@@ -56,18 +53,17 @@
             gap: 12px;
         }
 
-        .shopify-logo {
+        .support-avatar {
             width: 40px;
             height: 40px;
+            border-radius: 50%;
+            background: #e5e5e5;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .shopify-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+            font-weight: 600;
+            color: #666;
+            font-size: 14px;
         }
 
         .header-text h2 {
@@ -75,12 +71,6 @@
             font-weight: 600;
             color: #333;
             margin-bottom: 2px;
-        }
-
-        .agent-name-small {
-            font-size: 13px;
-            color: #95BF47;
-            font-weight: 500;
         }
 
         .status {
@@ -108,103 +98,19 @@
             50% { opacity: 0.5; }
         }
 
-        /* Logout Button */
         .logout-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: transparent;
+            padding: 6px 12px;
+            background: #f5f5f5;
             color: #666;
-            border: 1.5px solid #e5e5e5;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: 500;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
+            transition: background 0.2s;
         }
 
         .logout-btn:hover {
-            background: #f5f5f5;
-            border-color: #999;
-            color: #333;
-        }
-
-        .logout-btn svg {
-            transition: transform 0.2s ease;
-        }
-
-        .logout-btn:hover svg {
-            transform: translateX(3px);
-        }
-
-        @media (max-width: 768px) {
-            .logout-btn {
-                padding: 6px 12px;
-            }
-            
-            .logout-btn span {
-                display: none;
-            }
-            
-            .logout-btn svg {
-                width: 20px;
-                height: 20px;
-            }
-        }
-
-        /* Install PWA Banner */
-        .install-prompt {
-            background: #95BF47;
-            color: white;
-            padding: 12px 20px;
-            text-align: center;
-            font-size: 14px;
-            display: none;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .install-prompt.show {
-            display: flex;
-        }
-
-        .install-prompt button {
-            background: white;
-            color: #95BF47;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* Notification Permission Banner (In-app banner) */
-        .notification-permission-banner {
-            background: #fef3c7;
-            color: #92400e;
-            padding: 12px 20px;
-            font-size: 13px;
-            display: none;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #fde68a;
-        }
-
-        .notification-permission-banner.show {
-            display: flex;
-        }
-
-        .notification-permission-banner button {
-            padding: 6px 16px;
-            background: #92400e;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
+            background: #e5e5e5;
         }
 
         .welcome-screen {
@@ -214,18 +120,6 @@
             flex-direction: column;
             justify-content: center;
             height: 100%;
-        }
-
-        .welcome-logo {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-        }
-
-        .welcome-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
         }
 
         .welcome-screen h1 {
@@ -247,17 +141,18 @@
             border: 1px solid #e5e5e5;
             border-radius: 8px;
             font-size: 15px;
+            transition: border-color 0.3s;
         }
 
         .welcome-form input:focus {
             outline: none;
-            border-color: #95BF47;
+            border-color: #999;
         }
 
         .welcome-form button {
             width: 100%;
             padding: 14px;
-            background: #95BF47;
+            background: #666;
             color: white;
             border: none;
             border-radius: 8px;
@@ -268,121 +163,61 @@
         }
 
         .welcome-form button:hover {
-            background: #7fa33b;
+            background: #555;
         }
 
-        .chat-screen {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
-            position: relative;
+        .connecting-banner {
+            background: #f0f9ff;
+            color: #0369a1;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 13px;
+            border-bottom: 1px solid #e0f2fe;
+            display: none;
+            flex-shrink: 0;
         }
 
-        .messages-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
+        .connecting-banner.show {
+            display: block;
         }
 
         .messages-wrapper {
             flex: 1;
-            overflow: hidden;
             position: relative;
+            overflow: hidden;
+            background: #fafafa;
+            min-height: 0;
         }
 
         .messages-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            height: 100%;
             overflow-y: auto;
-            padding: 15px;
-            padding-bottom: 70px;
-            -webkit-overflow-scrolling: touch;
+            overflow-x: hidden;
+            padding: 20px;
+            padding-bottom: 150px;
+            scroll-behavior: smooth;
         }
 
         .date-divider {
             text-align: center;
-            margin: 15px 0;
+            margin: 20px 0;
             color: #999;
             font-size: 13px;
-            padding: 5px 0;
         }
 
         .join-notification {
             text-align: center;
-            margin: 12px 0;
+            margin: 15px 0;
             color: #999;
             font-size: 13px;
-            padding: 5px 0;
-        }
-
-        .system-message {
-            text-align: center;
-            margin: 12px 0;
-            color: #0369a1;
-            font-size: 13px;
-            padding: 8px 16px;
-            background: #f0f9ff;
-            border-radius: 20px;
-            display: inline-block;
-            align-self: center;
-            max-width: 80%;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .contacting-indicator {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin: 15px 0;
-            color: #666;
-            font-size: 13px;
-            padding: 10px;
-            background: #f5f5f5;
-            border-radius: 20px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .contacting-dots {
-            display: flex;
-            gap: 4px;
-        }
-
-        .contacting-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #95BF47;
-            animation: wave 1.4s infinite;
-        }
-
-        .contacting-dot:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .contacting-dot:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes wave {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-6px); }
         }
 
         .message {
-            margin-bottom: 15px;
+            margin-bottom: 16px;
             display: flex;
             gap: 8px;
             align-items: flex-end;
+            clear: both;
         }
 
         .message.customer {
@@ -393,28 +228,18 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
+            background: #e5e5e5;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 12px;
             font-weight: 600;
+            color: #666;
             flex-shrink: 0;
         }
 
-        .message.customer .message-avatar {
-            background: #e3f2fd;
-            color: #0d47a1;
-            border: 2px solid #bbdefb;
-        }
-
-        .message.admin .message-avatar {
-            background: #e8f5e9;
-            color: #2e7d32;
-            border: 2px solid #c8e6c9;
-        }
-
         .message-content {
-            max-width: 80%;
+            max-width: 70%;
             display: flex;
             flex-direction: column;
         }
@@ -423,21 +248,12 @@
             align-items: flex-end;
         }
 
-        .agent-name {
-            font-size: 11px;
-            font-weight: 600;
-            color: #95BF47;
-            margin-bottom: 2px;
-        }
-
         .message-bubble {
-            padding: 12px 14px;
-            border-radius: 18px;
+            padding: 10px 14px;
+            border-radius: 16px;
             word-wrap: break-word;
             font-size: 15px;
             line-height: 1.4;
-            max-width: 100%;
-            word-break: break-word;
         }
 
         .message.customer .message-bubble {
@@ -453,6 +269,21 @@
             border: 1px solid #e5e5e5;
         }
 
+        .message.system .message-bubble {
+            background: #f0f9ff;
+            color: #0369a1;
+            border: 1px solid #e0f2fe;
+            border-radius: 12px;
+        }
+
+        .message.ended .message-bubble {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            text-align: center;
+        }
+
         .message-info {
             font-size: 11px;
             color: #999;
@@ -464,13 +295,20 @@
         }
 
         .typing-indicator {
-            padding: 10px 15px;
+            position: fixed;
+            bottom: 75px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 20px);
+            max-width: 480px;
+            padding: 8px 16px;
             background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             font-size: 13px;
             color: #666;
             display: none;
-            border-top: 1px solid #e5e5e5;
-            flex-shrink: 0;
+            z-index: 90;
         }
 
         .typing-indicator.show {
@@ -503,10 +341,17 @@
         }
 
         .input-container {
-            padding: 12px 15px;
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 20px);
+            max-width: 480px;
+            padding: 15px 20px;
             background: white;
-            border-top: 1px solid #e5e5e5;
-            flex-shrink: 0;
+            border-radius: 12px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
         }
 
         .input-wrapper {
@@ -522,18 +367,17 @@
             border-radius: 24px;
             font-size: 15px;
             background: #fafafa;
-            min-height: 44px;
         }
 
         .input-wrapper input:focus {
             outline: none;
-            border-color: #95BF47;
+            border-color: #999;
             background: white;
         }
 
         .input-wrapper button {
-            padding: 12px 20px;
-            background: #95BF47;
+            padding: 12px 24px;
+            background: #666;
             color: white;
             border: none;
             border-radius: 24px;
@@ -542,11 +386,10 @@
             font-size: 14px;
             transition: background 0.3s;
             white-space: nowrap;
-            min-height: 44px;
         }
 
         .input-wrapper button:hover {
-            background: #7fa33b;
+            background: #555;
         }
 
         .input-wrapper button:disabled {
@@ -554,17 +397,37 @@
             cursor: not-allowed;
         }
 
-        .shopify-footer {
-            text-align: center;
-            padding: 8px;
-            font-size: 10px;
-            color: #999;
-            border-top: 1px solid #f0f0f0;
-            background: white;
-        }
-
         .hidden {
             display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 0;
+            }
+
+            .chat-container {
+                max-width: 100%;
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+
+            .message-content {
+                max-width: 75%;
+            }
+
+            .input-container {
+                bottom: 0;
+                border-radius: 0;
+                max-width: 100%;
+                width: 100%;
+            }
+
+            .typing-indicator {
+                bottom: 65px;
+                max-width: calc(100% - 20px);
+            }
         }
 
         .connection-error {
@@ -581,54 +444,76 @@
             display: block;
         }
 
-        @media (min-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            
-            .chat-container {
-                border-radius: 12px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                max-width: 500px;
-                max-height: 700px;
-                height: 90vh;
-            }
-            
-            .messages-container {
-                padding: 20px;
-                padding-bottom: 80px;
-            }
-            
-            .input-container {
-                padding: 15px 20px;
-            }
+        /* DROPDOWN NOTIFICATION BANNER */
+        .dropdown-notification {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            color: #333;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 10000;
+            min-width: 320px;
+            max-width: 90%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: top 0.3s ease-out;
+            border: 1px solid #e5e5e5;
         }
 
-        @supports (padding: max(0px)) {
-            .input-container {
-                padding-left: max(15px, env(safe-area-inset-left));
-                padding-right: max(15px, env(safe-area-inset-right));
-                padding-bottom: max(12px, env(safe-area-inset-bottom));
-            }
-            
-            .chat-header {
-                padding-top: max(15px, env(safe-area-inset-top));
+        .dropdown-notification.show {
+            top: 20px;
+        }
+
+        .dropdown-notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e8f5e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .dropdown-notification-content {
+            flex: 1;
+        }
+
+        .dropdown-notification-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 2px;
+            color: #333;
+        }
+
+        .dropdown-notification-message {
+            font-size: 13px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .dropdown-notification {
+                min-width: 280px;
+                padding: 14px 20px;
             }
         }
     </style>
 </head>
 <body>
     <div class="chat-container">
-        <!-- Install PWA Prompt (shows on mobile) -->
-        <div class="install-prompt" id="installPrompt">
-            <span>📱 Install app for notifications</span>
-            <button id="installBtn">Install</button>
-        </div>
-
-        <!-- Notification Permission Banner (IN-APP BANNER) -->
-        <div class="notification-permission-banner" id="notificationBanner">
-            <span>🔔 Allow notifications to get alerts when support replies</span>
-            <button id="enableNotificationsBtn">Allow</button>
+        <!-- DROPDOWN NOTIFICATION BANNER -->
+        <div class="dropdown-notification" id="dropdownNotification">
+            <div class="dropdown-notification-icon">💬</div>
+            <div class="dropdown-notification-content">
+                <div class="dropdown-notification-title" id="notifTitle">New Message</div>
+                <div class="dropdown-notification-message" id="notifMessage">You have a new message</div>
+            </div>
         </div>
 
         <div class="connection-error" id="connectionError">
@@ -637,36 +522,20 @@
 
         <div class="chat-header">
             <div class="header-info">
-                <div class="shopify-logo">
-                    <img src="https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png" alt="Shopify">
-                </div>
+                <div class="support-avatar">SS</div>
                 <div class="header-text">
-                    <h2>Shopify Support</h2>
-                    <div class="agent-name-small" id="agentNameSmall"></div>
+                    <h2>Support</h2>
                     <div class="status">
                         <span class="status-dot" id="adminStatus"></span>
                         <span id="statusText">Connecting...</span>
                     </div>
                 </div>
             </div>
-            
-            <!-- Logout Button -->
-            <button class="logout-btn hidden" id="logoutBtn">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M16 17L21 12L16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span>Sign out</span>
-            </button>
-            
+            <button class="logout-btn hidden" id="logoutBtn">Logout</button>
         </div>
 
         <div id="welcomeScreen" class="welcome-screen">
-            <div class="welcome-logo">
-                <img src="https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png" alt="Shopify">
-            </div>
-            <h1>Welcome to Shopify Support</h1>
+            <h1>Welcome to Support</h1>
             <p>Enter your details to connect with our support team</p>
             <form class="welcome-form" id="welcomeForm">
                 <input type="text" id="customerName" placeholder="Your Name" required>
@@ -675,32 +544,30 @@
             </form>
         </div>
 
-        <div id="chatScreen" class="chat-screen hidden">
-            <div class="messages-area">
-                <div class="messages-wrapper">
-                    <div class="messages-container" id="messagesContainer">
-                        <div class="date-divider">Today</div>
-                    </div>
+        <div id="chatScreen" class="hidden">
+            <div class="connecting-banner" id="connectingBanner">
+                Connecting you with a live agent...
+            </div>
+            
+            <div class="messages-wrapper">
+                <div class="messages-container" id="messagesContainer">
+                    <div class="date-divider">Today</div>
                 </div>
             </div>
-            
-            <div class="typing-indicator" id="typingIndicator">
-                <span>Support is typing</span>
-                <span class="typing-dot"></span>
-                <span class="typing-dot"></span>
-                <span class="typing-dot"></span>
-            </div>
-            
-            <div class="input-container hidden" id="inputContainer">
-                <div class="input-wrapper">
-                    <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
-                    <button id="sendButton">Send</button>
-                </div>
-            </div>
-            
-            <div class="shopify-footer">
-                Powered by Shopify
-            </div>
+        </div>
+    </div>
+
+    <div class="typing-indicator" id="typingIndicator">
+        <span>Support is typing</span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+    </div>
+
+    <div class="input-container hidden" id="inputContainer">
+        <div class="input-wrapper">
+            <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
+            <button id="sendButton">Send</button>
         </div>
     </div>
 
@@ -709,28 +576,17 @@
         import { getDatabase, ref, push, onValue, set, update, serverTimestamp, onDisconnect, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
         const firebaseConfig = {
-            apiKey: "AIzaSyA2E8L9VDUWXyJ1UgqlvTFpqYvRVNDUfho",
-            authDomain: "support-chat-6391e.firebaseapp.com",
-            databaseURL: "https://support-chat-6391e-default-rtdb.firebaseio.com",
-            projectId: "support-chat-6391e",
-            storageBucket: "support-chat-6391e.firebasestorage.app",
-            messagingSenderId: "817965074720",
-            appId: "1:817965074720:web:365b7c175189150b11af45",
-            measurementId: "G-BBQ6TPTJW5"
-        };
-
-        // Agent Personas
-        const AGENT_PERSONAS = [
-            { id: 'sarah', name: 'Sarah Johnson', initials: 'SJ' },
-            { id: 'mike', name: 'Mike Chen', initials: 'MC' },
-            { id: 'emma', name: 'Emma Williams', initials: 'EW' },
-            { id: 'david', name: 'David Kumar', initials: 'DK' },
-            { id: 'lisa', name: 'Lisa Anderson', initials: 'LA' }
-        ];
+    apiKey: "AIzaSyA2E8L9VDUWXyJ1UgqlvTFpqYvRVNDUfho",
+    authDomain: "support-chat-6391e.firebaseapp.com",
+    databaseURL: "https://support-chat-6391e-default-rtdb.firebaseio.com",
+    projectId: "support-chat-6391e",
+    storageBucket: "support-chat-6391e.firebasestorage.app",
+    messagingSenderId: "817965074720",
+    appId: "1:817965074720:web:365b7c175189150b11af45",
+    measurementId: "G-BBQ6TPTJW5"
+  };
 
         let app, database;
-        let deferredPrompt = null;
-        let isPWA = false;
         
         try {
             app = initializeApp(firebaseConfig);
@@ -748,10 +604,9 @@
         let customerInitials = '';
         let lastMessageCount = 0;
         let userScrolledUp = false;
-        let assignedAgent = null;
-        let isAgentAssigned = false;
+        let isNewSession = false;
+        let notificationPermissionGranted = false;
 
-        // DOM Elements
         const welcomeScreen = document.getElementById('welcomeScreen');
         const chatScreen = document.getElementById('chatScreen');
         const welcomeForm = document.getElementById('welcomeForm');
@@ -764,255 +619,18 @@
         const connectionError = document.getElementById('connectionError');
         const logoutBtn = document.getElementById('logoutBtn');
         const inputContainer = document.getElementById('inputContainer');
-        const agentNameSmall = document.getElementById('agentNameSmall');
-        const installPrompt = document.getElementById('installPrompt');
-        const installBtn = document.getElementById('installBtn');
-        const notificationBanner = document.getElementById('notificationBanner');
-        const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
+        const connectingBanner = document.getElementById('connectingBanner');
 
-        // ==================== REAL SYSTEM BANNER NOTIFICATIONS (LIKE WHATSAPP) ====================
-        
-        // Check if running as PWA
-        isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                window.navigator.standalone === true;
-
-        // Listen for install prompt
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            
-            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && !isPWA) {
-                installPrompt.classList.add('show');
+        // Request notification permission immediately
+        async function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                const permission = await Notification.requestPermission();
+                notificationPermissionGranted = permission === 'granted';
+                return permission;
+            } else if (Notification.permission === 'granted') {
+                notificationPermissionGranted = true;
             }
-        });
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    installPrompt.style.display = 'none';
-                }
-                deferredPrompt = null;
-            }
-        });
-
-        // Setup system notifications
-        async function setupSystemNotifications() {
-            if (!('Notification' in window)) {
-                console.log('Browser does not support notifications');
-                notificationBanner.style.display = 'none';
-                return;
-            }
-
-            // Check current permission
-            if (Notification.permission === 'granted') {
-                console.log('Notification permission granted');
-                notificationBanner.classList.remove('show');
-                
-                // Register service worker for better system notifications
-                registerServiceWorker();
-                
-            } else if (Notification.permission === 'denied') {
-                console.log('Notifications blocked');
-                notificationBanner.style.display = 'none';
-            } else {
-                // Show banner to ask for permission
-                notificationBanner.classList.add('show');
-            }
-
-            // Handle enable button click
-            enableNotificationsBtn.addEventListener('click', async () => {
-                try {
-                    const permission = await Notification.requestPermission();
-                    if (permission === 'granted') {
-                        notificationBanner.classList.remove('show');
-                        registerServiceWorker();
-                        
-                        // Show test system notification
-                        showSystemNotification(
-                            '✅ Shopify Support',
-                            'You will now receive notifications when support replies',
-                            'test'
-                        );
-                    } else if (permission === 'denied') {
-                        alert('Notifications blocked. Please enable in your phone settings.');
-                        notificationBanner.style.display = 'none';
-                    }
-                } catch (error) {
-                    console.error('Error requesting permission:', error);
-                }
-            });
-        }
-
-        // Register service worker for better background notifications
-        async function registerServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                try {
-                    const registration = await navigator.serviceWorker.register('/sw.js');
-                    console.log('Service Worker registered:', registration);
-                    
-                    // Wait for service worker to be ready
-                    await navigator.serviceWorker.ready;
-                    console.log('Service Worker is ready');
-                    
-                } catch (error) {
-                    console.log('Service Worker registration failed:', error);
-                }
-            }
-        }
-
-        // SHOW REAL SYSTEM BANNER NOTIFICATION (appears at top of phone screen)
-        function showSystemNotification(title, body, type = 'message') {
-            // Check permission
-            if (Notification.permission !== 'granted') {
-                console.log('Cannot show notification - permission not granted');
-                playSound();
-                return;
-            }
-
-            // Don't show notification if user is currently in the chat
-            if (document.hasFocus() && currentSessionId === sessionId) {
-                console.log('User is in chat, playing sound only');
-                playSound();
-                return;
-            }
-
-            console.log('Showing system notification:', title);
-
-            // Options for the notification
-            const options = {
-                body: body,
-                icon: 'https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png',
-                badge: 'https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png',
-                tag: 'shopify-' + Date.now(),
-                vibrate: [200, 100, 200],
-                silent: false,
-                requireInteraction: false,
-                data: {
-                    url: window.location.href,
-                    sessionId: sessionId,
-                    timestamp: Date.now()
-                }
-            };
-
-            // Add actions for message notifications
-            if (type === 'message') {
-                options.actions = [
-                    {
-                        action: 'open',
-                        title: 'Open Chat'
-                    },
-                    {
-                        action: 'close',
-                        title: 'Dismiss'
-                    }
-                ];
-            }
-
-            try {
-                // Create and show the notification
-                const notification = new Notification(title, options);
-                
-                console.log('System notification sent successfully');
-
-                // Handle notification click
-                notification.onclick = (event) => {
-                    event.preventDefault();
-                    window.focus();
-                    
-                    // If there's a specific session, bring it up
-                    if (sessionId) {
-                        // The chat is already loaded
-                    }
-                    
-                    notification.close();
-                };
-
-                // Handle notification actions
-                notification.onaction = (event) => {
-                    if (event.action === 'open') {
-                        window.focus();
-                    }
-                    notification.close();
-                };
-
-                // Auto close after 10 seconds if not interacted with
-                setTimeout(() => {
-                    notification.close();
-                }, 10000);
-
-                // Play sound as well
-                playSound();
-
-            } catch (error) {
-                console.error('Failed to show system notification:', error);
-                playSound();
-            }
-        }
-
-        // Play notification sound
-        function playSound() {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                
-                const oscillator1 = audioContext.createOscillator();
-                const gainNode1 = audioContext.createGain();
-                oscillator1.connect(gainNode1);
-                gainNode1.connect(audioContext.destination);
-                oscillator1.frequency.value = 900;
-                oscillator1.type = 'sine';
-                gainNode1.gain.setValueAtTime(0.5, audioContext.currentTime);
-                gainNode1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-                oscillator1.start(audioContext.currentTime);
-                oscillator1.stop(audioContext.currentTime + 0.2);
-                
-                const oscillator2 = audioContext.createOscillator();
-                const gainNode2 = audioContext.createGain();
-                oscillator2.connect(gainNode2);
-                gainNode2.connect(audioContext.destination);
-                oscillator2.frequency.value = 600;
-                oscillator2.type = 'sine';
-                gainNode2.gain.setValueAtTime(0.5, audioContext.currentTime + 0.15);
-                gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-                oscillator2.start(audioContext.currentTime + 0.15);
-                oscillator2.stop(audioContext.currentTime + 0.4);
-            } catch (error) {
-                console.log('Sound error:', error);
-            }
-        }
-
-        // Add CSS for animations
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // ==================== AGENT ASSIGNMENT ====================
-        async function assignAgentToCustomer() {
-            const counterRef = ref(database, 'system/agentCounter');
-            
-            try {
-                const snapshot = await get(counterRef);
-                let counter = snapshot.exists() ? snapshot.val() : 0;
-                
-                const nextIndex = counter % AGENT_PERSONAS.length;
-                const assignedAgent = AGENT_PERSONAS[nextIndex];
-                
-                await set(counterRef, counter + 1);
-                
-                console.log(`🎯 Customer assigned to: ${assignedAgent.name}`);
-                return assignedAgent;
-                
-            } catch (error) {
-                console.error('Error assigning agent:', error);
-                const randomIndex = Math.floor(Math.random() * AGENT_PERSONAS.length);
-                return AGENT_PERSONAS[randomIndex];
-            }
+            return Notification.permission;
         }
 
         messagesContainer.addEventListener('scroll', () => {
@@ -1021,8 +639,8 @@
         });
 
         window.addEventListener('load', () => {
-            // Setup system notifications first
-            setupSystemNotifications();
+            // Request notification permission on load
+            requestNotificationPermission();
 
             const savedSession = localStorage.getItem('customerSession');
             if (savedSession) {
@@ -1032,17 +650,7 @@
                     customerEmail = sessionData.email;
                     sessionId = sessionData.sessionId;
                     customerInitials = getInitials(customerName);
-                    
-                    get(ref(database, `sessions/${sessionId}/assignedAgent`)).then((snapshot) => {
-                        if (snapshot.exists()) {
-                            const agentId = snapshot.val();
-                            assignedAgent = AGENT_PERSONAS.find(a => a.id === agentId);
-                            if (assignedAgent) {
-                                updateAgentUI(assignedAgent);
-                                isAgentAssigned = true;
-                            }
-                        }
-                    });
+                    isNewSession = false;
                     
                     welcomeScreen.classList.add('hidden');
                     chatScreen.classList.remove('hidden');
@@ -1061,21 +669,172 @@
             return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         }
 
-        function updateAgentUI(agent) {
-            agentNameSmall.textContent = agent.name;
-        }
-
         function showConnectionError() {
             connectionError.classList.add('show');
-            setTimeout(() => connectionError.classList.remove('show'), 5000);
+            setTimeout(() => {
+                connectionError.classList.remove('show');
+            }, 5000);
         }
 
-        function scrollToBottom() {
-            setTimeout(() => {
-                if (!userScrolledUp) {
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        // WhatsApp notification sound - Two-tone "ding-dong"
+        // ==================== COMPLETE NOTIFICATION SYSTEM ====================
+        
+        const dropdownNotification = document.getElementById('dropdownNotification');
+        const notifTitle = document.getElementById('notifTitle');
+        const notifMessage = document.getElementById('notifMessage');
+        let notificationTimeout = null;
+
+        // Play WhatsApp "ding-dong" sound
+        function playWhatsAppSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // First tone (higher pitch)
+                const oscillator1 = audioContext.createOscillator();
+                const gainNode1 = audioContext.createGain();
+                oscillator1.connect(gainNode1);
+                gainNode1.connect(audioContext.destination);
+                oscillator1.frequency.value = 900; // E note
+                oscillator1.type = 'sine';
+                gainNode1.gain.setValueAtTime(0.5, audioContext.currentTime);
+                gainNode1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                oscillator1.start(audioContext.currentTime);
+                oscillator1.stop(audioContext.currentTime + 0.2);
+                
+                // Second tone (lower pitch) - starts after first
+                const oscillator2 = audioContext.createOscillator();
+                const gainNode2 = audioContext.createGain();
+                oscillator2.connect(gainNode2);
+                gainNode2.connect(audioContext.destination);
+                oscillator2.frequency.value = 600; // D note
+                oscillator2.type = 'sine';
+                gainNode2.gain.setValueAtTime(0.5, audioContext.currentTime + 0.15);
+                gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+                oscillator2.start(audioContext.currentTime + 0.15);
+                oscillator2.stop(audioContext.currentTime + 0.4);
+            } catch (error) {
+                console.log('Audio playback error:', error);
+            }
+        }
+
+        // Show dropdown notification (when app is visible/active)
+        function showDropdownNotification(title, message) {
+            console.log('📢 Showing dropdown notification:', title, message);
+            
+            // Clear any existing timeout
+            if (notificationTimeout) {
+                clearTimeout(notificationTimeout);
+            }
+            
+            // Update content
+            notifTitle.textContent = title;
+            notifMessage.textContent = message;
+            
+            // Show the dropdown
+            dropdownNotification.classList.add('show');
+            
+            // Auto-hide after 5 seconds
+            notificationTimeout = setTimeout(() => {
+                dropdownNotification.classList.remove('show');
+            }, 5000);
+            
+            // Play sound
+            playWhatsAppSound();
+        }
+
+        // Show system notification (when app is in background/closed)
+        function showSystemNotification(title, body) {
+            console.log('🔔 Showing system notification:', title, body);
+            
+            if ('Notification' in window && Notification.permission === 'granted') {
+                // Use service worker if available for better background support
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.ready.then(registration => {
+                        registration.showNotification(title, {
+                            body: body,
+                            icon: 'https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png',
+                            badge: 'https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png',
+                            tag: 'shopify-support-' + Date.now(),
+                            requireInteraction: false,
+                            vibrate: [200, 100, 200],
+                            data: { url: window.location.href },
+                            silent: false
+                        });
+                    }).catch(() => {
+                        // Fallback to regular notification
+                        showRegularNotification(title, body);
+                    });
+                } else {
+                    showRegularNotification(title, body);
                 }
-            }, 100);
+            }
+            
+            // Play sound for system notifications too
+            playWhatsAppSound();
+        }
+
+        // Regular browser notification (fallback)
+        function showRegularNotification(title, body) {
+            const notification = new Notification(title, {
+                body: body,
+                icon: 'https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png',
+                badge: 'https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png',
+                tag: 'shopify-support-' + Date.now(),
+                requireInteraction: false,
+                vibrate: [200, 100, 200]
+            });
+
+            notification.onclick = function() {
+                window.focus();
+                notification.close();
+            };
+
+            setTimeout(() => notification.close(), 10000);
+        }
+
+        // MAIN NOTIFICATION HANDLER - Decides dropdown vs system notification
+        function handleNotification(title, message) {
+            // Check if user is actively viewing the page
+            if (document.hasFocus() && !document.hidden) {
+                // User is looking at the app → Show dropdown banner
+                console.log('✅ User is active → Showing DROPDOWN notification');
+                showDropdownNotification(title, message);
+            } else {
+                // User has app in background or closed → Show system notification
+                console.log('✅ User is inactive → Showing SYSTEM notification');
+                showSystemNotification(title, message);
+            }
+        }
+
+        // Register service worker for background notifications
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('✅ Service Worker registered:', registration);
+                })
+                .catch(error => {
+                    console.log('⚠️ Service Worker registration failed:', error);
+                });
+        }
+
+        // Request notification permission on page load
+        window.addEventListener('load', () => {
+            if ('Notification' in window && Notification.permission === 'default') {
+                setTimeout(() => {
+                    Notification.requestPermission().then(permission => {
+                        console.log('Notification permission:', permission);
+                    });
+                }, 2000);
+            }
+        });
+
+
+        function scrollToBottom() {
+            if (!userScrolledUp) {
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 50);
+            }
         }
 
         function resumeSession() {
@@ -1100,75 +859,111 @@
             }
         });
 
-        // ==================== MAIN CHAT START ====================
         welcomeForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // Request notification permission when starting chat
+            if (Notification.permission === 'default') {
+                await requestNotificationPermission();
+            }
             
             const inputName = document.getElementById('customerName').value;
             const inputEmail = document.getElementById('customerEmail').value;
 
-            customerName = inputName;
-            customerEmail = inputEmail;
-            customerInitials = getInitials(customerName);
-            sessionId = push(ref(database, 'sessions')).key;
+            const savedSession = localStorage.getItem('customerSession');
             
-            // Assign agent
-            assignedAgent = await assignAgentToCustomer();
-            
-            // Create session
-            await set(ref(database, `sessions/${sessionId}`), {
-                customerName,
-                customerEmail,
-                startedAt: serverTimestamp(),
-                customerOnline: true,
-                adminOnline: false,
-                unreadByAdmin: 0,
-                archived: false,
-                newCustomer: true,
-                assignedAgent: assignedAgent.id
-            });
+            if (savedSession) {
+                try {
+                    const sessionData = JSON.parse(savedSession);
+                    
+                    if (sessionData.name === inputName && sessionData.email === inputEmail) {
+                        customerName = sessionData.name;
+                        customerEmail = sessionData.email;
+                        sessionId = sessionData.sessionId;
+                        customerInitials = getInitials(customerName);
+                        isNewSession = false;
+                        
+                        set(ref(database, `sessions/${sessionId}/customerOnline`), true);
+                        onDisconnect(ref(database, `sessions/${sessionId}/customerOnline`)).set(false);
+                    } else {
+                        localStorage.removeItem('customerSession');
+                        sessionId = null;
+                    }
+                } catch (error) {
+                    console.error('Error resuming session:', error);
+                    localStorage.removeItem('customerSession');
+                    sessionId = null;
+                }
+            }
 
-            localStorage.setItem('customerSession', JSON.stringify({
-                name: customerName,
-                email: customerEmail,
-                sessionId: sessionId
-            }));
+            if (!sessionId) {
+                try {
+                    customerName = inputName;
+                    customerEmail = inputEmail;
+                    customerInitials = getInitials(customerName);
+                    sessionId = push(ref(database, 'sessions')).key;
+                    isNewSession = true;
+                    
+                    await set(ref(database, `sessions/${sessionId}`), {
+                        customerName,
+                        customerEmail,
+                        startedAt: serverTimestamp(),
+                        customerOnline: true,
+                        adminOnline: false,
+                        unreadByAdmin: 1,
+                        archived: false,
+                        newCustomer: true
+                    });
 
-            set(ref(database, `sessions/${sessionId}/customerOnline`), true);
-            onDisconnect(ref(database, `sessions/${sessionId}/customerOnline`)).set(false);
+                    localStorage.setItem('customerSession', JSON.stringify({
+                        name: customerName,
+                        email: customerEmail,
+                        sessionId: sessionId
+                    }));
 
-            // Send welcome message
-            const joinRef = push(ref(database, `sessions/${sessionId}/messages`));
-            await set(joinRef, {
-                type: 'notification',
-                text: `${customerName} joined the chat`,
-                timestamp: serverTimestamp()
-            });
+                    const customerPresenceRef = ref(database, `sessions/${sessionId}/customerOnline`);
+                    set(customerPresenceRef, true);
+                    onDisconnect(customerPresenceRef).set(false);
 
-            // Send greeting
-            const greetingRef = push(ref(database, `sessions/${sessionId}/messages`));
-            await set(greetingRef, {
-                text: "An advisor will join in a moment. If you share some details, they'll be able to help you more quickly. What are you working on today?",
-                sender: 'system',
-                timestamp: serverTimestamp()
-            });
+                    const joinRef = push(ref(database, `sessions/${sessionId}/messages`));
+                    await set(joinRef, {
+                        type: 'notification',
+                        text: `${customerName} joined the chat`,
+                        timestamp: serverTimestamp()
+                    });
+
+                    connectingBanner.classList.add('show');
+                    
+                    setTimeout(async () => {
+                        const welcomeRef = push(ref(database, `sessions/${sessionId}/messages`));
+                        await set(welcomeRef, {
+                            text: "Hello! Welcome to our support team. How can we assist you today?",
+                            sender: 'system',
+                            timestamp: serverTimestamp(),
+                            read: true
+                        });
+                        
+                        connectingBanner.classList.remove('show');
+                    }, 2000);
+
+                } catch (error) {
+                    console.error('Error starting session:', error);
+                    showConnectionError();
+                    return;
+                }
+            }
 
             welcomeScreen.classList.add('hidden');
             chatScreen.classList.remove('hidden');
             inputContainer.classList.remove('hidden');
             logoutBtn.classList.remove('hidden');
             
-            updateAgentUI(assignedAgent);
-            
             listenForMessages();
             listenForAdminStatus();
             listenForAdminTyping();
             messageInput.focus();
-            
-            setTimeout(scrollToBottom, 500);
         });
 
-        // ==================== SEND MESSAGE ====================
         function sendMessage() {
             const message = messageInput.value.trim();
             if (!message) return;
@@ -1192,74 +987,10 @@
                 messageInput.value = '';
                 userScrolledUp = false;
                 stopTyping();
-                scrollToBottom();
-                
-                if (!isAgentAssigned) {
-                    showContactingIndicator();
-                    
-                    setTimeout(async () => {
-                        await simulateAgentJoin();
-                    }, 3000 + Math.random() * 2000);
-                }
-                
             } catch (error) {
                 console.error('Error sending message:', error);
                 showConnectionError();
             }
-        }
-
-        function showContactingIndicator() {
-            const contactingDiv = document.createElement('div');
-            contactingDiv.className = 'contacting-indicator';
-            contactingDiv.id = 'contactingIndicator';
-            contactingDiv.innerHTML = `
-                <span>Contacting Advisor</span>
-                <div class="contacting-dots">
-                    <span class="contacting-dot"></span>
-                    <span class="contacting-dot"></span>
-                    <span class="contacting-dot"></span>
-                </div>
-            `;
-            messagesContainer.appendChild(contactingDiv);
-            scrollToBottom();
-        }
-
-        function removeContactingIndicator() {
-            const indicator = document.getElementById('contactingIndicator');
-            if (indicator) indicator.remove();
-        }
-
-        async function simulateAgentJoin() {
-            if (isAgentAssigned) return;
-            
-            isAgentAssigned = true;
-            removeContactingIndicator();
-            
-            // Agent joins notification
-            const joinRef = push(ref(database, `sessions/${sessionId}/messages`));
-            await set(joinRef, {
-                type: 'notification',
-                text: 'An advisor has joined the chat',
-                timestamp: serverTimestamp()
-            });
-            
-            // Agent greeting
-            const greetingRef = push(ref(database, `sessions/${sessionId}/messages`));
-            await set(greetingRef, {
-                text: `Hello, this is ${assignedAgent.name}, your Shopify Support Advisor!`,
-                sender: 'admin',
-                senderName: assignedAgent.name,
-                senderInitials: assignedAgent.initials,
-                timestamp: serverTimestamp(),
-                read: true
-            });
-            
-            update(ref(database, `sessions/${sessionId}`), {
-                adminOnline: true,
-                unreadByAdmin: 0
-            });
-            
-            scrollToBottom();
         }
 
         sendButton.addEventListener('click', sendMessage);
@@ -1282,7 +1013,6 @@
             set(ref(database, `sessions/${sessionId}/customerTyping`), false);
         }
 
-        // ==================== LISTEN FOR MESSAGES ====================
         function listenForMessages() {
             const messagesRef = ref(database, `sessions/${sessionId}/messages`);
             onValue(messagesRef, (snapshot) => {
@@ -1295,6 +1025,8 @@
                     Object.entries(messages).forEach(([id, msg]) => {
                         if (msg.type === 'notification') {
                             displayNotification(msg);
+                        } else if (msg.type === 'ended') {
+                            displayEndedMessage(msg);
                         } else {
                             displayMessage(msg, id);
                         }
@@ -1309,20 +1041,18 @@
 
                 if (messageCount > lastMessageCount) {
                     const lastMsg = messages ? Object.values(messages).pop() : null;
-                    
-                    // Show system notification for new admin messages
-                    if (lastMsg && lastMsg.sender === 'admin') {
-                        showSystemNotification(
-                            `💬 ${lastMsg.senderName || 'Shopify Support'}`,
-                            lastMsg.text.substring(0, 100),
-                            'message'
+                    if (lastMsg && lastMsg.sender !== 'customer' && lastMsg.type !== 'notification') {
+                        // Admin sent a message → Trigger notification
+                        handleNotification(
+                            '💬 New message from Support',
+                            lastMsg.text.substring(0, 100)
                         );
                     }
-                    
                     userScrolledUp = false;
-                    scrollToBottom();
                 }
                 lastMessageCount = messageCount;
+
+                scrollToBottom();
             }, (error) => {
                 console.error('Error listening for messages:', error);
                 showConnectionError();
@@ -1336,28 +1066,30 @@
             messagesContainer.appendChild(notifDiv);
         }
 
+        function displayEndedMessage(msg) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ended';
+            messageDiv.style.justifyContent = 'center';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = msg.text;
+            bubble.style.maxWidth = '90%';
+            
+            messageDiv.appendChild(bubble);
+            messagesContainer.appendChild(messageDiv);
+        }
+
         function displayMessage(msg, id) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${msg.sender}`;
             
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
-            
-            if (msg.sender === 'customer') {
-                avatar.textContent = customerInitials;
-            } else {
-                avatar.textContent = msg.senderInitials || 'SP';
-            }
+            avatar.textContent = msg.sender === 'customer' ? customerInitials : 'SS';
             
             const content = document.createElement('div');
             content.className = 'message-content';
-            
-            if (msg.sender === 'admin' && msg.senderName) {
-                const nameDiv = document.createElement('div');
-                nameDiv.className = 'agent-name';
-                nameDiv.textContent = msg.senderName;
-                content.appendChild(nameDiv);
-            }
             
             const bubble = document.createElement('div');
             bubble.className = 'message-bubble';
@@ -1367,7 +1099,7 @@
             info.className = 'message-info';
             
             const time = msg.timestamp ? formatTime(msg.timestamp) : 'now';
-            const receipt = msg.read ? 'Seen' : 'Delivered';
+            const receipt = msg.read ? 'seen' : 'delivered';
             
             if (msg.sender === 'customer') {
                 info.innerHTML = `<span>${time}, ${receipt}</span>`;
@@ -1387,7 +1119,7 @@
             const now = new Date();
             const diff = (now - date) / 1000;
             
-            if (diff < 60) return 'just now';
+            if (diff < 60) return 'a moment ago';
             if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
@@ -1398,10 +1130,10 @@
                 const online = snapshot.val();
                 if (online) {
                     adminStatus.classList.add('online');
-                    statusText.textContent = 'Online';
+                    statusText.textContent = 'online';
                 } else {
                     adminStatus.classList.remove('online');
-                    statusText.textContent = 'Offline';
+                    statusText.textContent = 'offline';
                 }
             });
         }
