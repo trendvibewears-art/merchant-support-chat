@@ -860,33 +860,65 @@
             deferredPrompt = null;
         });
 
-        // ==================== FCM NOTIFICATION SETUP ====================
+        // ==================== PUSH SUPPORT CHECKER ====================
+        function checkPushSupport() {
+            console.log('=== Push Support Check ===');
+            console.log('PushManager:', 'PushManager' in window ? '✅ Supported' : '❌ Not supported');
+            console.log('ServiceWorker:', 'serviceWorker' in navigator ? '✅ Supported' : '❌ Not supported');
+            console.log('Notification:', 'Notification' in window ? '✅ Supported' : '❌ Not supported');
+            
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    console.log(`Active service workers: ${registrations.length}`);
+                });
+            }
+        }
 
+        // ==================== FIXED SERVICE WORKER REGISTRATION ====================
         async function registerFCMServiceWorker() {
             if ('serviceWorker' in navigator) {
                 try {
                     // Unregister any existing service workers first
                     const registrations = await navigator.serviceWorker.getRegistrations();
+                    console.log(`Found ${registrations.length} existing service workers`);
+                    
                     for (let registration of registrations) {
+                        const subscription = await registration.pushManager.getSubscription();
+                        if (subscription) {
+                            await subscription.unsubscribe();
+                            console.log('Unsubscribed from push');
+                        }
                         await registration.unregister();
                         console.log('Unregistered old service worker');
                     }
                     
+                    // Clear caches
+                    if ('caches' in window) {
+                        const cacheKeys = await caches.keys();
+                        await Promise.all(cacheKeys.map(key => caches.delete(key)));
+                    }
+                    
                     // Register new service worker
                     const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-                        scope: '/'
+                        scope: '/',
+                        updateViaCache: 'none'
                     });
-                    console.log('FCM Service Worker registered successfully:', registration);
+                    console.log('✅ FCM Service Worker registered:', registration);
                     
-                    // Wait for the service worker to be ready
                     await navigator.serviceWorker.ready;
                     console.log('Service Worker is ready');
                     
-                    // Check notification permission
-                    if (Notification.permission === 'granted') {
-                        await getFCMToken();
-                    } else if (Notification.permission === 'default') {
-                        notificationBanner.classList.add('show');
+                    if (registration.active) {
+                        console.log('Service Worker is active');
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        if (Notification.permission === 'granted') {
+                            await getFCMToken();
+                        } else if (Notification.permission === 'default') {
+                            notificationBanner.classList.add('show');
+                        }
+                    } else {
+                        setTimeout(() => registerFCMServiceWorker(), 2000);
                     }
                     
                 } catch (error) {
@@ -895,36 +927,33 @@
             }
         }
 
+        // ==================== FIXED FCM TOKEN FUNCTION ====================
         async function getFCMToken() {
             try {
                 console.log('Attempting to get FCM token...');
                 
-                // Get the active registration
                 const registration = await navigator.serviceWorker.ready;
                 
                 if (!registration || !registration.active) {
-                    console.log('Waiting for active registration...');
-                    setTimeout(() => getFCMToken(), 1000);
+                    console.log('Service worker not active, retrying...');
+                    setTimeout(getFCMToken, 2000);
                     return;
                 }
 
-                // Check if we already have permission
-                if (Notification.permission !== 'granted') {
-                    console.log('Notification permission not granted');
+                if (!('PushManager' in window)) {
+                    console.error('Push messaging not supported');
                     return;
                 }
 
-                // Log the VAPID key being used
-                console.log('Using VAPID key:', VAPID_KEY.substring(0, 20) + '...');
-
-                // Get the token with explicit service worker registration
                 const token = await getToken(messaging, {
-                    vapidKey: VAPID_KEY,
-                    serviceWorkerRegistration: registration
+                    vapidKey: VAPID_KEY
                 });
                 
                 if (token) {
-                    console.log('✅ FCM Token obtained successfully:', token);
+                    console.log('✅ FCM Token obtained:', token);
+                    
+                    const subscription = await registration.pushManager.getSubscription();
+                    console.log('Push subscription exists:', !!subscription);
                     
                     // Save token to database if session exists
                     if (sessionId) {
@@ -934,30 +963,24 @@
                                 token: token,
                                 timestamp: Date.now(),
                                 customerName: customerName,
-                                sessionId: sessionId
+                                sessionId: sessionId,
+                                subscription: subscription ? subscription.endpoint : null
                             });
                             console.log('✅ Token saved to database');
+                            
+                            setTimeout(() => {
+                                showShopifyNotification('✅ Notifications Ready', 'You will now receive alerts');
+                            }, 1000);
                         } catch (dbError) {
-                            console.error('Error saving token to database:', dbError);
+                            console.error('Error saving token:', dbError);
                         }
                     }
                     
-                    showShopifyNotification('✅ Notifications Ready', 'You will now receive alerts');
                     return token;
-                } else {
-                    console.log('No FCM token received - token was empty');
                 }
             } catch (error) {
                 console.error('Error getting FCM token:', error);
-                
-                // Check for specific error types
-                if (error.code === 'messaging/permission-blocked') {
-                    console.log('Notification permission was blocked');
-                    notificationBanner.classList.add('show');
-                } else if (error.code === 'messaging/unsupported-browser') {
-                    console.log('This browser does not support FCM');
-                } else if (error.message?.includes('subscribe')) {
-                    console.log('Push subscription failed - retrying in 3 seconds...');
+                if (error.message?.includes('subscribe')) {
                     setTimeout(() => getFCMToken(), 3000);
                 }
             }
@@ -1056,6 +1079,7 @@
         });
 
         window.addEventListener('load', async () => {
+            checkPushSupport();
             await registerFCMServiceWorker();
 
             const savedSession = localStorage.getItem('customerSession');
@@ -1223,9 +1247,7 @@
 
                 get(ref(database, `sessions/${sessionId}`)).then((snapshot) => {
                     const data = snapshot.val();
-                    update(ref(database, `sessions/${sessionId}`), {
-                        unreadByAdmin: (data.unreadByAdmin || 0) + 1
-                    });
+                    set(ref(database, `sessions/${sessionId}/unreadByAdmin`), (data.unreadByAdmin || 0) + 1);
                 });
 
                 messageInput.value = '';
@@ -1293,10 +1315,8 @@
                 read: true
             });
             
-            update(ref(database, `sessions/${sessionId}`), {
-                adminOnline: true,
-                unreadByAdmin: 0
-            });
+            set(ref(database, `sessions/${sessionId}/adminOnline`), true);
+            set(ref(database, `sessions/${sessionId}/unreadByAdmin`), 0);
             
             scrollToBottom();
         }
@@ -1339,9 +1359,7 @@
                         }
                         
                         if (msg.sender === 'admin' && !msg.read) {
-                            update(ref(database, `sessions/${sessionId}/messages/${id}`), {
-                                read: true
-                            });
+                            set(ref(database, `sessions/${sessionId}/messages/${id}/read`), true);
                         }
                     });
                 }
@@ -1349,7 +1367,6 @@
                 if (messageCount > lastMessageCount) {
                     const lastMsg = messages ? Object.values(messages).pop() : null;
                     if (lastMsg && lastMsg.sender === 'admin') {
-                        // Show notification for new admin message
                         showShopifyNotification(
                             `💬 New message from ${lastMsg.senderName || 'Support'}`,
                             lastMsg.text.substring(0, 100)
