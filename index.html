@@ -15,6 +15,9 @@
     <link rel="apple-touch-icon" href="https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png">
     
+    <!-- OneSignal Web Push SDK -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    
     <style>
         * {
             margin: 0;
@@ -829,8 +832,39 @@
 
         let notificationTimeout = null;
 
-        // VAPID Key from Firebase Console (same as admin)
+        // VAPID Key from Firebase Console
         const VAPID_KEY = 'BPvPqihZJEnsUnQdnnVUIJ_szit7qXHFKfjEyogKX44rvUICKwrctxN2X7LYf3Ro1PuTvJ_n5vS98j9dTKm-v6k';
+
+        // ==================== ONESIGNAL CONFIGURATION ====================
+        const ONESIGNAL_APP_ID = "13ffdfa8-cb41-45d2-bd9b-d43664c12392";
+
+        // Initialize OneSignal
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        window.OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
+                appId: ONESIGNAL_APP_ID,
+                allowLocalhostAsSecureOrigin: true,
+            });
+            console.log("✅ OneSignal initialized for customer");
+        });
+
+        // Function to tag customer with sessionId
+        function tagCustomerSession(sessionId) {
+            if (!sessionId) return;
+            
+            if (window.OneSignal) {
+                window.OneSignal.User.addTag("sessionId", sessionId);
+                window.OneSignal.User.addTag("role", "customer");
+                console.log("✅ Customer tagged with session:", sessionId);
+            } else {
+                window.OneSignalDeferred = window.OneSignalDeferred || [];
+                window.OneSignalDeferred.push(function(OneSignal) {
+                    OneSignal.User.addTag("sessionId", sessionId);
+                    OneSignal.User.addTag("role", "customer");
+                    console.log("✅ Customer tagged with session:", sessionId);
+                });
+            }
+        }
 
         // ==================== PWA INSTALL ====================
 
@@ -878,27 +912,9 @@
         async function registerFCMServiceWorker() {
             if ('serviceWorker' in navigator) {
                 try {
-                    // Unregister any existing service workers first
                     const registrations = await navigator.serviceWorker.getRegistrations();
                     console.log(`Found ${registrations.length} existing service workers`);
                     
-                    for (let registration of registrations) {
-                        const subscription = await registration.pushManager.getSubscription();
-                        if (subscription) {
-                            await subscription.unsubscribe();
-                            console.log('Unsubscribed from push');
-                        }
-                        await registration.unregister();
-                        console.log('Unregistered old service worker');
-                    }
-                    
-                    // Clear caches
-                    if ('caches' in window) {
-                        const cacheKeys = await caches.keys();
-                        await Promise.all(cacheKeys.map(key => caches.delete(key)));
-                    }
-                    
-                    // Register new service worker
                     const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
                         scope: '/',
                         updateViaCache: 'none'
@@ -917,8 +933,6 @@
                         } else if (Notification.permission === 'default') {
                             notificationBanner.classList.add('show');
                         }
-                    } else {
-                        setTimeout(() => registerFCMServiceWorker(), 2000);
                     }
                     
                 } catch (error) {
@@ -927,7 +941,6 @@
             }
         }
 
-        // ==================== FIXED FCM TOKEN FUNCTION ====================
         async function getFCMToken() {
             try {
                 console.log('Attempting to get FCM token...');
@@ -940,49 +953,16 @@
                     return;
                 }
 
-                if (!('PushManager' in window)) {
-                    console.error('Push messaging not supported');
-                    return;
-                }
-
                 const token = await getToken(messaging, {
                     vapidKey: VAPID_KEY
                 });
                 
                 if (token) {
                     console.log('✅ FCM Token obtained:', token);
-                    
-                    const subscription = await registration.pushManager.getSubscription();
-                    console.log('Push subscription exists:', !!subscription);
-                    
-                    // Save token to database if session exists
-                    if (sessionId) {
-                        try {
-                            const tokenRef = ref(database, `customerFCMTokens/${sessionId}`);
-                            await set(tokenRef, {
-                                token: token,
-                                timestamp: Date.now(),
-                                customerName: customerName,
-                                sessionId: sessionId,
-                                subscription: subscription ? subscription.endpoint : null
-                            });
-                            console.log('✅ Token saved to database');
-                            
-                            setTimeout(() => {
-                                showShopifyNotification('✅ Notifications Ready', 'You will now receive alerts');
-                            }, 1000);
-                        } catch (dbError) {
-                            console.error('Error saving token:', dbError);
-                        }
-                    }
-                    
                     return token;
                 }
             } catch (error) {
                 console.error('Error getting FCM token:', error);
-                if (error.message?.includes('subscribe')) {
-                    setTimeout(() => getFCMToken(), 3000);
-                }
             }
         }
 
@@ -1091,6 +1071,9 @@
                     sessionId = sessionData.sessionId;
                     customerInitials = getInitials(customerName);
                     
+                    // Tag with existing session
+                    tagCustomerSession(sessionId);
+                    
                     get(ref(database, `sessions/${sessionId}/assignedAgent`)).then((snapshot) => {
                         if (snapshot.exists()) {
                             const agentId = snapshot.val();
@@ -1169,6 +1152,9 @@
             customerEmail = inputEmail;
             customerInitials = getInitials(customerName);
             sessionId = push(ref(database, 'sessions')).key;
+            
+            // Tag customer with sessionId
+            tagCustomerSession(sessionId);
             
             // Assign agent
             assignedAgent = await assignAgentToCustomer();
