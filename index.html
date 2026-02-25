@@ -826,65 +826,34 @@
         }
 
         // Send email notification to customer
-        async function sendEmailToCustomer(email, agentName, message, subject) {
-    console.log('📧 ===== CUSTOMER EMAIL DEBUG START =====');
-    console.log('1. Email parameter received:', email);
-    console.log('2. Type of email:', typeof email);
-    console.log('3. Email length:', email ? email.length : 0);
-    console.log('4. Agent name:', agentName);
-    console.log('5. Message preview:', message.substring(0, 30));
+        // REPLACE with this fixed version
+async function sendEmailToCustomer(email, agentName, message, subject) {
+    console.log('📧 Sending customer email to:', email);
     
     if (!email) {
-        console.log('❌ No customer email, cannot send notification');
-        console.log('📧 ===== CUSTOMER EMAIL DEBUG END =====');
+        console.log('❌ No customer email');
         return false;
     }
     
-    // Trim the email just in case
-    const cleanEmail = email.trim();
-    console.log('6. Cleaned email:', cleanEmail);
-    
     try {
-        const templateParams = {
-            to_email: cleanEmail,           // This MUST match template's "To Email" field
-            to_name: customerName || "Customer",
-            subject: subject || `📱 Reply from ${agentName}`,
-            type: "Support Reply",
-            agent_name: agentName,
-            message: message,
-            timestamp: getFormattedTimestamp()
-        };
-        
-        console.log('7. Template params being sent:', JSON.stringify(templateParams, null, 2));
-        
         const response = await emailjs.send(
             "service_tgqvv15",
-            "template_itev1ui",
-            templateParams
+            "template_itev1ui", // Customer template
+            {
+                to_email: email,
+                to_name: customerName || "Customer",
+                subject: subject || `New message from Support`,
+                type: "Support Reply",
+                agent_name: agentName,
+                message: message,
+                timestamp: getFormattedTimestamp()
+            }
         );
         
-        console.log("✅ Email sent successfully!", response);
-        console.log('📧 ===== CUSTOMER EMAIL DEBUG END =====');
+        console.log("✅ Customer email sent!", response);
         return true;
     } catch (error) {
-        console.error("❌ Email failed to send!");
-        console.error("Error object:", error);
-        console.error("Status:", error.status);
-        console.error("Text:", error.text);
-        
-        if (error.status === 422) {
-            console.error("❌ TEMPLATE MISMATCH! Check these:");
-            console.error("1. Is 'To Email' field in template set to {{to_email}}?");
-            console.error("2. Does your template have all these variables:");
-            console.error("   - to_email");
-            console.error("   - subject");
-            console.error("   - type");
-            console.error("   - agent_name");
-            console.error("   - message");
-            console.error("   - timestamp");
-        }
-        
-        console.log('📧 ===== CUSTOMER EMAIL DEBUG END =====');
+        console.error("❌ Customer email failed:", error);
         return false;
     }
 }
