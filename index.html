@@ -765,7 +765,7 @@
 
         let sessionId = null;
         let customerName = '';
-        let customerEmail = '';
+        let customerEmail = '';  // THIS IS THE CUSTOMER'S EMAIL
         let isTyping = false;
         let typingTimeout = null;
         let customerInitials = '';
@@ -813,17 +813,26 @@
             return document.visibilityState === 'visible' && document.hasFocus();
         }
 
-        // Send email notification
-        async function sendEmailNotification(recipientEmail, templateId, templateParams) {
-            console.log(`📧 Sending email to customer: ${recipientEmail}`);
+        // Send email notification to customer
+        async function sendEmailToCustomer(email, agentName, message, subject) {
+            if (!email) {
+                console.log('⚠️ No customer email, cannot send notification');
+                return false;
+            }
+            
+            console.log(`📧 Sending email to customer: ${email}`);
             
             try {
                 const response = await emailjs.send(
                     EMAIL_CONFIG.serviceId,
-                    templateId,
+                    EMAIL_CONFIG.customerTemplateId,
                     {
-                        to_email: recipientEmail,
-                        ...templateParams
+                        to_email: email,
+                        subject: subject || `📱 Reply from ${agentName}`,
+                        type: "Support Reply",
+                        agent_name: agentName,
+                        message: message,
+                        timestamp: getFormattedTimestamp()
                     }
                 );
                 
@@ -943,7 +952,7 @@
                 try {
                     const sessionData = JSON.parse(savedSession);
                     customerName = sessionData.name;
-                    customerEmail = sessionData.email;
+                    customerEmail = sessionData.email; // LOAD CUSTOMER EMAIL
                     sessionId = sessionData.sessionId;
                     customerInitials = getInitials(customerName);
                     
@@ -1022,17 +1031,17 @@
             const inputEmail = document.getElementById('customerEmail').value;
 
             customerName = inputName;
-            customerEmail = inputEmail;
+            customerEmail = inputEmail; // STORE CUSTOMER EMAIL
             customerInitials = getInitials(customerName);
             sessionId = push(ref(database, 'sessions')).key;
             
             // Assign agent
             assignedAgent = await assignAgentToCustomer();
             
-            // Create session
+            // Create session with customer email
             await set(ref(database, `sessions/${sessionId}`), {
                 customerName,
-                customerEmail,
+                customerEmail, // SAVE EMAIL TO DATABASE
                 startedAt: serverTimestamp(),
                 customerOnline: true,
                 adminOnline: false,
@@ -1044,7 +1053,7 @@
 
             localStorage.setItem('customerSession', JSON.stringify({
                 name: customerName,
-                email: customerEmail,
+                email: customerEmail, // SAVE EMAIL TO LOCAL STORAGE
                 sessionId: sessionId
             }));
 
@@ -1230,18 +1239,13 @@
                             lastMsg.text.substring(0, 100)
                         );
                         
-                        // Send email if customer is not active
+                        // Send email if customer is not active AND we have their email
                         if (!isUserActive() && customerEmail) {
-                            sendEmailNotification(
+                            sendEmailToCustomer(
                                 customerEmail,
-                                EMAIL_CONFIG.customerTemplateId,
-                                {
-                                    subject: `📱 Reply from ${agentName}`,
-                                    type: "Support Reply",
-                                    agent_name: agentName,
-                                    message: lastMsg.text,
-                                    timestamp: getFormattedTimestamp()
-                                }
+                                agentName,
+                                lastMsg.text,
+                                `📱 Reply from ${agentName}`
                             );
                         }
                     }
