@@ -15,8 +15,8 @@
     <link rel="apple-touch-icon" href="https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png">
     <link rel="icon" type="image/png" href="https://i.postimg.cc/tRd0SC3Q/Shopify-Image.png">
     
-    <!-- OneSignal Web Push SDK -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <style>
         * {
@@ -136,32 +136,6 @@
             padding: 6px 16px;
             border-radius: 20px;
             font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* Notification Permission Banner */
-        .notification-banner {
-            background: #fef3c7;
-            color: #92400e;
-            padding: 12px 20px;
-            font-size: 13px;
-            display: none;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #fde68a;
-        }
-
-        .notification-banner.show {
-            display: flex;
-        }
-
-        .notification-banner button {
-            padding: 6px 16px;
-            background: #92400e;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
             cursor: pointer;
         }
 
@@ -662,45 +636,6 @@
                 padding-top: max(15px, env(safe-area-inset-top));
             }
         }
-
-        /* Customer Test Panel */
-        .customer-test-panel {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.2);
-            z-index: 10000;
-            border: 2px solid #95BF47;
-            max-width: 300px;
-        }
-        
-        .customer-test-panel h4 {
-            margin: 0 0 10px 0;
-            color: #333;
-        }
-        
-        .customer-test-panel button {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 5px;
-            margin-right: 5px;
-            margin-bottom: 5px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        
-        .customer-test-panel .status-box {
-            margin-top: 10px;
-            padding: 8px;
-            background: #f5f5f5;
-            border-radius: 5px;
-            font-size: 11px;
-            color: #666;
-            word-break: break-all;
-        }
     </style>
 </head>
 <body>
@@ -709,12 +644,6 @@
         <div class="install-prompt" id="installPrompt">
             <span>📱 Install app for notifications</span>
             <button id="installBtn">Install</button>
-        </div>
-
-        <!-- Notification Permission Banner -->
-        <div class="notification-banner" id="notificationBanner">
-            <span>🔔 Enable notifications for real-time alerts</span>
-            <button id="enableNotificationsBtn">Enable</button>
         </div>
 
         <!-- Dropdown Notification Banner -->
@@ -798,15 +727,6 @@
         </div>
     </div>
 
-    <!-- Customer Test Panel -->
-    <div class="customer-test-panel" id="customerTestPanel">
-        <h4>📱 Customer Notifications</h4>
-        <button onclick="checkCustomerStatus()" style="background: #4CAF50; color: white;">Check Status</button>
-        <button onclick="requestCustomerPermission()" style="background: #FF5722; color: white;">Enable</button>
-        <button onclick="hideTestPanel()" style="background: #f44336; color: white;">Hide</button>
-        <div class="status-box" id="customerStatus">Click Check Status</div>
-    </div>
-
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getDatabase, ref, push, onValue, set, update, serverTimestamp, onDisconnect, get } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
@@ -831,7 +751,7 @@
             { id: 'lisa', name: 'Lisa Anderson', initials: 'LA' }
         ];
 
-        let app, database, messaging;
+        let app, database;
         let deferredPrompt = null;
         let isPWA = false;
         
@@ -870,125 +790,122 @@
         const agentNameSmall = document.getElementById('agentNameSmall');
         const installPrompt = document.getElementById('installPrompt');
         const installBtn = document.getElementById('installBtn');
-        const notificationBanner = document.getElementById('notificationBanner');
-        const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
         const dropdownNotification = document.getElementById('dropdownNotification');
         const notifTitle = document.getElementById('notifTitle');
         const notifMessage = document.getElementById('notifMessage');
-        const customerStatus = document.getElementById('customerStatus');
 
         let notificationTimeout = null;
 
-        // ==================== ONESIGNAL CONFIGURATION ====================
-        const ONESIGNAL_APP_ID = "13ffdfa8-cb41-45d2-bd9b-d43664c12392";
+        // ==================== EMAILJS CONFIGURATION ====================
+        const EMAIL_CONFIG = {
+            serviceId: "service_tgqvv15",
+            customerTemplateId: "template_itev1ui"
+        };
 
-        // Initialize OneSignal for customer
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        window.OneSignalDeferred.push(async function(OneSignal) {
-            await OneSignal.init({
-                appId: ONESIGNAL_APP_ID,
-                allowLocalhostAsSecureOrigin: true,
-                autoPrompt: true,
-                promptOptions: {
-                    slidedown: {
-                        enabled: true,
-                        autoPrompt: true,
-                        acceptButton: "Subscribe",
-                        cancelButton: "Later"
+        // Initialize EmailJS
+        (function() {
+            emailjs.init("xvNOeNBbWUGNwnwE1");
+            console.log("✅ EmailJS initialized");
+        })();
+
+        // Check if user is active in the chat
+        function isUserActive() {
+            return document.visibilityState === 'visible' && document.hasFocus();
+        }
+
+        // Send email notification
+        async function sendEmailNotification(recipientEmail, templateId, templateParams) {
+            console.log(`📧 Sending email to customer: ${recipientEmail}`);
+            
+            try {
+                const response = await emailjs.send(
+                    EMAIL_CONFIG.serviceId,
+                    templateId,
+                    {
+                        to_email: recipientEmail,
+                        ...templateParams
                     }
-                }
-            });
-            console.log("✅ OneSignal initialized for customer");
-            
-            // Enable debug logging
-            OneSignal.Debug.setLogLevel('trace');
-            
-            // Check if already subscribed
-            const subscription = await OneSignal.User.getPushSubscription();
-            if (subscription && subscription.id) {
-                console.log("✅ Customer already subscribed:", subscription.id);
-                updateStatus(`✅ Subscribed: ${subscription.id.substring(0, 20)}...`);
-            }
-        });
-
-        // Function to tag customer with sessionId
-        async function tagCustomerSession(sessionId) {
-            if (!sessionId) return;
-            
-            if (window.OneSignal) {
-                await window.OneSignal.User.addTag("sessionId", sessionId);
-                await window.OneSignal.User.addTag("role", "customer");
-                console.log("✅ Customer tagged with session:", sessionId);
+                );
                 
-                // Verify subscription
-                const sub = await window.OneSignal.User.getPushSubscription();
-                if (sub && sub.id) {
-                    updateStatus(`✅ Subscribed & Tagged`);
-                } else {
-                    updateStatus("⚠️ Tagged but not subscribed");
-                }
-            } else {
-                console.log("⏳ OneSignal not ready, will tag later");
-                // Queue it for later
-                window.OneSignalDeferred.push(async function(OneSignal) {
-                    await OneSignal.User.addTag("sessionId", sessionId);
-                    await OneSignal.User.addTag("role", "customer");
-                    console.log("✅ Customer tagged with session (deferred):", sessionId);
-                });
+                console.log("✅ Email sent successfully:", response.status);
+                return true;
+            } catch (error) {
+                console.error("❌ Email failed to send:", error);
+                return false;
             }
         }
 
-        // Manual permission request
-        window.requestCustomerPermission = async function() {
-            updateStatus("Requesting permission...");
-            
-            if (window.OneSignal) {
-                const accepted = await window.OneSignal.Notifications.requestPermission();
-                if (accepted) {
-                    updateStatus("✅ Permission granted");
-                    const sub = await window.OneSignal.User.getPushSubscription();
-                    if (sub && sub.id) {
-                        updateStatus(`✅ Subscribed: ${sub.id.substring(0, 20)}...`);
-                        if (sessionId) {
-                            await tagCustomerSession(sessionId);
-                        }
-                    }
-                } else {
-                    updateStatus("❌ Permission denied");
-                }
-            } else {
-                updateStatus("❌ OneSignal not loaded");
+        // Format timestamp
+        function getFormattedTimestamp() {
+            const now = new Date();
+            return now.toLocaleString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric',
+                hour: '2-digit', 
+                minute: '2-digit'
+            });
+        }
+
+        // ==================== PWA INSTALL ====================
+
+        isPWA = window.matchMedia('(display-mode: standalone').matches || window.navigator.standalone === true;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && !isPWA) {
+                installPrompt.classList.add('show');
             }
-        };
+        });
 
-        // Check current status
-        window.checkCustomerStatus = async function() {
-            updateStatus("Checking...");
-            
-            if (window.OneSignal) {
-                const sub = await window.OneSignal.User.getPushSubscription();
-                if (sub && sub.id) {
-                    updateStatus(`✅ Subscribed\nID: ${sub.id.substring(0, 30)}...`);
-                    console.log("Customer OneSignal ID:", sub.id);
-                    
-                    // Check tags
-                    const tags = await window.OneSignal.User.getTags();
-                    console.log("Customer tags:", tags);
-                } else {
-                    updateStatus("❌ Not subscribed\nClick 'Enable' button");
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installPrompt.style.display = 'none';
                 }
-            } else {
-                updateStatus("❌ OneSignal not initialized");
+                deferredPrompt = null;
             }
-        };
+        });
 
-        window.hideTestPanel = function() {
-            document.getElementById('customerTestPanel').style.display = 'none';
-        };
+        window.addEventListener('appinstalled', () => {
+            installPrompt.style.display = 'none';
+            deferredPrompt = null;
+        });
 
-        function updateStatus(message) {
-            if (customerStatus) {
-                customerStatus.innerHTML = message;
+        // ==================== NOTIFICATION FUNCTIONS ====================
+
+        function showInAppNotification(title, message) {
+            if (notificationTimeout) clearTimeout(notificationTimeout);
+            
+            notifTitle.textContent = title;
+            notifMessage.textContent = message;
+            dropdownNotification.classList.add('show');
+            
+            notificationTimeout = setTimeout(() => {
+                dropdownNotification.classList.remove('show');
+            }, 5000);
+            
+            playNotificationSound();
+        }
+
+        function playNotificationSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (error) {
+                console.log('Audio error:', error);
             }
         }
 
@@ -1021,9 +938,6 @@
         });
 
         window.addEventListener('load', async () => {
-            // Check push support
-            checkPushSupport();
-
             const savedSession = localStorage.getItem('customerSession');
             if (savedSession) {
                 try {
@@ -1032,9 +946,6 @@
                     customerEmail = sessionData.email;
                     sessionId = sessionData.sessionId;
                     customerInitials = getInitials(customerName);
-                    
-                    // Tag with existing session
-                    await tagCustomerSession(sessionId);
                     
                     get(ref(database, `sessions/${sessionId}/assignedAgent`)).then((snapshot) => {
                         if (snapshot.exists()) {
@@ -1057,73 +968,6 @@
                     console.error('Error loading saved session:', error);
                     localStorage.removeItem('customerSession');
                 }
-            }
-        });
-
-        function checkPushSupport() {
-            console.log('=== Push Support Check ===');
-            console.log('PushManager:', 'PushManager' in window ? '✅ Supported' : '❌ Not supported');
-            console.log('ServiceWorker:', 'serviceWorker' in navigator ? '✅ Supported' : '❌ Not supported');
-            console.log('Notification:', 'Notification' in window ? '✅ Supported' : '❌ Not supported');
-            
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(registrations => {
-                    console.log(`Active service workers: ${registrations.length}`);
-                });
-            }
-        }
-
-        function showShopifyNotification(title, message) {
-            if (notificationTimeout) clearTimeout(notificationTimeout);
-            
-            notifTitle.textContent = title;
-            notifMessage.textContent = message;
-            dropdownNotification.classList.add('show');
-            
-            notificationTimeout = setTimeout(() => {
-                dropdownNotification.classList.remove('show');
-            }, 5000);
-            
-            playWhatsAppSound();
-        }
-
-        function playWhatsAppSound() {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator1 = audioContext.createOscillator();
-                const gainNode1 = audioContext.createGain();
-                oscillator1.connect(gainNode1);
-                gainNode1.connect(audioContext.destination);
-                oscillator1.frequency.value = 900;
-                oscillator1.type = 'sine';
-                gainNode1.gain.setValueAtTime(0.5, audioContext.currentTime);
-                gainNode1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-                oscillator1.start(audioContext.currentTime);
-                oscillator1.stop(audioContext.currentTime + 0.2);
-                
-                const oscillator2 = audioContext.createOscillator();
-                const gainNode2 = audioContext.createGain();
-                oscillator2.connect(gainNode2);
-                gainNode2.connect(audioContext.destination);
-                oscillator2.frequency.value = 600;
-                oscillator2.type = 'sine';
-                gainNode2.gain.setValueAtTime(0.5, audioContext.currentTime + 0.15);
-                gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-                oscillator2.start(audioContext.currentTime + 0.15);
-                oscillator2.stop(audioContext.currentTime + 0.4);
-            } catch (error) {
-                console.log('Audio error:', error);
-            }
-        }
-
-        enableNotificationsBtn.addEventListener('click', async () => {
-            try {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    notificationBanner.classList.remove('show');
-                }
-            } catch (error) {
-                console.error('Error requesting permission:', error);
             }
         });
 
@@ -1181,9 +1025,6 @@
             customerEmail = inputEmail;
             customerInitials = getInitials(customerName);
             sessionId = push(ref(database, 'sessions')).key;
-            
-            // Tag customer with sessionId (OneSignal)
-            await tagCustomerSession(sessionId);
             
             // Assign agent
             assignedAgent = await assignAgentToCustomer();
@@ -1376,12 +1217,35 @@
 
                 if (messageCount > lastMessageCount) {
                     const lastMsg = messages ? Object.values(messages).pop() : null;
+                    
+                    // ADMIN REPLIED - show notification and send email if offline
                     if (lastMsg && lastMsg.sender === 'admin') {
-                        showShopifyNotification(
-                            `💬 New message from ${lastMsg.senderName || 'Support'}`,
+                        
+                        // Get agent name
+                        const agentName = lastMsg.senderName || 'Support Team';
+                        
+                        // Show in-app notification
+                        showInAppNotification(
+                            `💬 New message from ${agentName}`,
                             lastMsg.text.substring(0, 100)
                         );
+                        
+                        // Send email if customer is not active
+                        if (!isUserActive() && customerEmail) {
+                            sendEmailNotification(
+                                customerEmail,
+                                EMAIL_CONFIG.customerTemplateId,
+                                {
+                                    subject: `📱 Reply from ${agentName}`,
+                                    type: "Support Reply",
+                                    agent_name: agentName,
+                                    message: lastMsg.text,
+                                    timestamp: getFormattedTimestamp()
+                                }
+                            );
+                        }
                     }
+                    
                     userScrolledUp = false;
                     scrollToBottom();
                 }
