@@ -765,7 +765,7 @@
 
         let sessionId = null;
         let customerName = '';
-        let customerEmail = '';  // THIS IS THE CUSTOMER'S EMAIL
+        let customerEmail = '';
         let isTyping = false;
         let typingTimeout = null;
         let customerInitials = '';
@@ -813,6 +813,18 @@
             return document.visibilityState === 'visible' && document.hasFocus();
         }
 
+        // Format timestamp
+        function getFormattedTimestamp() {
+            const now = new Date();
+            return now.toLocaleString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric',
+                hour: '2-digit', 
+                minute: '2-digit'
+            });
+        }
+
         // Send email notification to customer
         async function sendEmailToCustomer(email, agentName, message, subject) {
             if (!email) {
@@ -828,7 +840,8 @@
                     EMAIL_CONFIG.customerTemplateId,
                     {
                         to_email: email,
-                        subject: subject || `📱 Reply from ${agentName}`,
+                        to_name: customerName || "Customer",
+                        subject: subject,
                         type: "Support Reply",
                         agent_name: agentName,
                         message: message,
@@ -840,20 +853,10 @@
                 return true;
             } catch (error) {
                 console.error("❌ Email failed to send:", error);
+                console.error("Status:", error.status);
+                console.error("Text:", error.text);
                 return false;
             }
-        }
-
-        // Format timestamp
-        function getFormattedTimestamp() {
-            const now = new Date();
-            return now.toLocaleString('en-US', { 
-                month: 'short', 
-                day: 'numeric', 
-                year: 'numeric',
-                hour: '2-digit', 
-                minute: '2-digit'
-            });
         }
 
         // ==================== PWA INSTALL ====================
@@ -946,26 +949,34 @@
             userScrolledUp = !isAtBottom;
         });
 
+        // ==================== LOAD EVENT WITH RESUME SESSION ====================
         window.addEventListener('load', async () => {
             const savedSession = localStorage.getItem('customerSession');
             if (savedSession) {
                 try {
                     const sessionData = JSON.parse(savedSession);
                     customerName = sessionData.name;
-                    customerEmail = sessionData.email; // LOAD CUSTOMER EMAIL
+                    customerEmail = sessionData.email;
                     sessionId = sessionData.sessionId;
                     customerInitials = getInitials(customerName);
                     
-                    get(ref(database, `sessions/${sessionId}/assignedAgent`)).then((snapshot) => {
-                        if (snapshot.exists()) {
-                            const agentId = snapshot.val();
-                            assignedAgent = AGENT_PERSONAS.find(a => a.id === agentId);
-                            if (assignedAgent) {
-                                updateAgentUI(assignedAgent);
-                                isAgentAssigned = true;
-                            }
-                        }
+                    console.log("✅ Resuming session:", {
+                        name: customerName,
+                        email: customerEmail,
+                        sessionId: sessionId
                     });
+                    
+                    // Get fresh session data from Firebase
+                    const sessionSnapshot = await get(ref(database, `sessions/${sessionId}`));
+                    if (sessionSnapshot.exists()) {
+                        const session = sessionSnapshot.val();
+                        const agentId = session.assignedAgent;
+                        assignedAgent = AGENT_PERSONAS.find(a => a.id === agentId);
+                        if (assignedAgent) {
+                            updateAgentUI(assignedAgent);
+                            isAgentAssigned = true;
+                        }
+                    }
                     
                     welcomeScreen.classList.add('hidden');
                     chatScreen.classList.remove('hidden');
@@ -1001,11 +1012,30 @@
             }, 100);
         }
 
+        // ==================== FIXED RESUME SESSION ====================
         function resumeSession() {
+            console.log("🔄 Resuming session:", sessionId);
+            
+            // Set online status
             set(ref(database, `sessions/${sessionId}/customerOnline`), true);
             onDisconnect(ref(database, `sessions/${sessionId}/customerOnline`)).set(false);
             
+            // Clear and load messages
+            messagesContainer.innerHTML = '<div class="date-divider">Today</div>';
+            
+            // Start listening for messages
             listenForMessages();
+            
+            // Force load existing messages
+            get(ref(database, `sessions/${sessionId}/messages`)).then((snapshot) => {
+                const messages = snapshot.val();
+                if (messages) {
+                    console.log(`📜 Found ${Object.keys(messages).length} existing messages`);
+                } else {
+                    console.log("📜 No existing messages");
+                }
+            });
+            
             listenForAdminStatus();
             listenForAdminTyping();
             messageInput.focus();
@@ -1031,17 +1061,23 @@
             const inputEmail = document.getElementById('customerEmail').value;
 
             customerName = inputName;
-            customerEmail = inputEmail; // STORE CUSTOMER EMAIL
+            customerEmail = inputEmail;
             customerInitials = getInitials(customerName);
             sessionId = push(ref(database, 'sessions')).key;
+            
+            console.log("✅ New session created:", {
+                name: customerName,
+                email: customerEmail,
+                sessionId: sessionId
+            });
             
             // Assign agent
             assignedAgent = await assignAgentToCustomer();
             
-            // Create session with customer email
+            // Create session with email
             await set(ref(database, `sessions/${sessionId}`), {
                 customerName,
-                customerEmail, // SAVE EMAIL TO DATABASE
+                customerEmail,
                 startedAt: serverTimestamp(),
                 customerOnline: true,
                 adminOnline: false,
@@ -1053,7 +1089,7 @@
 
             localStorage.setItem('customerSession', JSON.stringify({
                 name: customerName,
-                email: customerEmail, // SAVE EMAIL TO LOCAL STORAGE
+                email: customerEmail,
                 sessionId: sessionId
             }));
 
@@ -1201,17 +1237,25 @@
             set(ref(database, `sessions/${sessionId}/customerTyping`), false);
         }
 
-        // ==================== LISTEN FOR MESSAGES ====================
+        // ==================== FIXED LISTEN FOR MESSAGES ====================
         function listenForMessages() {
             const messagesRef = ref(database, `sessions/${sessionId}/messages`);
+            
             onValue(messagesRef, (snapshot) => {
                 const messages = snapshot.val();
+                
+                // Clear and rebuild message list
                 messagesContainer.innerHTML = '<div class="date-divider">Today</div>';
                 
                 const messageCount = messages ? Object.keys(messages).length : 0;
                 
                 if (messages) {
-                    Object.entries(messages).forEach(([id, msg]) => {
+                    // Display all messages in order
+                    Object.entries(messages).sort((a, b) => {
+                        const timeA = a[1].timestamp || 0;
+                        const timeB = b[1].timestamp || 0;
+                        return timeA - timeB;
+                    }).forEach(([id, msg]) => {
                         if (msg.type === 'notification') {
                             displayNotification(msg);
                         } else {
@@ -1222,15 +1266,17 @@
                             set(ref(database, `sessions/${sessionId}/messages/${id}/read`), true);
                         }
                     });
+                    
+                    console.log(`📨 Displayed ${Object.keys(messages).length} messages`);
                 }
-
+                
+                scrollToBottom();
+                
+                // Check for new messages (for notifications)
                 if (messageCount > lastMessageCount) {
                     const lastMsg = messages ? Object.values(messages).pop() : null;
                     
-                    // ADMIN REPLIED - show notification and send email if offline
                     if (lastMsg && lastMsg.sender === 'admin') {
-                        
-                        // Get agent name
                         const agentName = lastMsg.senderName || 'Support Team';
                         
                         // Show in-app notification
@@ -1239,7 +1285,7 @@
                             lastMsg.text.substring(0, 100)
                         );
                         
-                        // Send email if customer is not active AND we have their email
+                        // Send email if customer is not active
                         if (!isUserActive() && customerEmail) {
                             sendEmailToCustomer(
                                 customerEmail,
@@ -1249,9 +1295,6 @@
                             );
                         }
                     }
-                    
-                    userScrolledUp = false;
-                    scrollToBottom();
                 }
                 lastMessageCount = messageCount;
             }, (error) => {
